@@ -1,20 +1,36 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Trampas Inteligentes</title>
 
 <style>
+/* =====================
+   VARIABLES DE TEMA
+===================== */
 :root{
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e2e8f0;
+  --accent:#2563eb;
+  --ok:#16a34a;
+  --warn:#d97706;
+  --alarm:#dc2626;
+}
+
+[data-theme="dark"]{
   --bg:#0f1720;
   --card:#151f2c;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --border:#1e293b;
   --accent:#3b82f6;
   --ok:#22c55e;
   --warn:#f59e0b;
   --alarm:#ef4444;
-  --text:#e5e7eb;
-  --muted:#94a3b8;
 }
 
 *{box-sizing:border-box;font-family:system-ui,sans-serif}
@@ -25,26 +41,49 @@ body{
   color:var(--text);
 }
 
+/* =====================
+   HEADER
+===================== */
 header{
-  padding:16px 24px;
-  font-size:1.2rem;
-  font-weight:600;
-  border-bottom:1px solid #1e293b;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
 }
 
+header span{
+  font-weight:600;
+}
+
+header button{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+/* =====================
+   GRID RESPONSIVO
+===================== */
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
   gap:16px;
-  padding:20px;
+  padding:16px;
 }
 
+/* =====================
+   TARJETAS
+===================== */
 .card{
   background:var(--card);
   border-radius:14px;
   padding:14px;
-  position:relative;
-  transition:all .3s ease;
+  border:1px solid var(--border);
+  transition:.3s;
 }
 
 .card.alarm{
@@ -64,21 +103,24 @@ header{
   font-weight:600;
 }
 
-.ok{background:rgba(34,197,94,.15);color:var(--ok)}
-.warn{background:rgba(245,158,11,.15);color:var(--warn)}
-.alarm-badge{background:rgba(239,68,68,.15);color:var(--alarm)}
+.ok{background:rgba(22,163,74,.15);color:var(--ok)}
+.warn{background:rgba(217,119,6,.15);color:var(--warn)}
+.alarm-badge{background:rgba(220,38,38,.15);color:var(--alarm)}
 
 .meta{
-  font-size:.8rem;
+  font-size:.75rem;
   color:var(--muted);
-  margin-top:6px;
+  margin-top:4px;
 }
 
+/* =====================
+   IMAGEN (SOLO EVENTO)
+===================== */
 .preview{
+  display:none;
   margin-top:10px;
   border-radius:10px;
   overflow:hidden;
-  display:none;
 }
 
 .card.alarm .preview{
@@ -91,30 +133,36 @@ header{
   object-fit:cover;
 }
 
+/* =====================
+   SENSORES
+===================== */
 .sensors{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
   margin-top:10px;
-  font-size:.8rem;
+  font-size:.75rem;
 }
 
 .sensor{
-  background:#0b1220;
+  background:rgba(0,0,0,.05);
   padding:6px 8px;
   border-radius:8px;
 }
 
+/* =====================
+   CONTROLES
+===================== */
 .controls{
   display:flex;
+  flex-wrap:wrap;
   gap:8px;
   margin-top:12px;
-  flex-wrap:wrap;
 }
 
-button{
-  background:#0b1220;
-  border:1px solid #1e293b;
+button.ctrl{
+  background:transparent;
+  border:1px solid var(--border);
   color:var(--text);
   padding:6px 10px;
   border-radius:8px;
@@ -122,125 +170,93 @@ button{
   cursor:pointer;
 }
 
-button:hover{
-  background:#1e293b;
+button.ctrl:hover{
+  background:var(--accent);
+  color:#fff;
 }
 
+/* =====================
+   HISTORIAL
+===================== */
 .history{
   margin-top:10px;
-  font-size:.75rem;
+  font-size:.7rem;
   color:var(--muted);
+}
+
+/* =====================
+   MOBILE AJUSTES
+===================== */
+@media(max-width:480px){
+  header span{font-size:.9rem}
+  .preview img{height:150px}
 }
 </style>
 </head>
 
 <body>
 
-<header>🪤 Sistema de Trampas Inteligentes</header>
+<header>
+  <span>🪤 Trampas Inteligentes</span>
+  <button onclick="toggleTheme()">🌗 Tema</button>
+</header>
 
 <section class="grid">
 
-  <!-- TRAMPA 1 -->
   <div class="card alarm">
     <div class="top">
       <div>Trampa 01</div>
       <div class="status alarm-badge">ALARMA</div>
     </div>
-    <div class="meta">Último evento: 12:34:21</div>
+    <div class="meta">Evento: 12:34:21</div>
 
     <div class="preview">
-      <img src="https://placehold.co/600x400?text=Evento+Detectado">
+      <img src="https://placehold.co/600x400?text=Evento">
     </div>
 
     <div class="sensors">
-      <div class="sensor">Movimiento: ✔</div>
-      <div class="sensor">Distancia: 18 mm</div>
-      <div class="sensor">Temp: 21°C</div>
-      <div class="sensor">Batería: 82%</div>
+      <div class="sensor">Movimiento ✔</div>
+      <div class="sensor">Distancia 18mm</div>
+      <div class="sensor">Temp 21°C</div>
+      <div class="sensor">Batería 82%</div>
     </div>
 
     <div class="controls">
-      <button>Deshabilitar</button>
-      <button>Ver cámara</button>
-      <button>Capturar</button>
-      <button>Silenciar</button>
+      <button class="ctrl">Deshabilitar</button>
+      <button class="ctrl">Cámara</button>
+      <button class="ctrl">Capturar</button>
     </div>
 
     <div class="history">Historial ▸</div>
   </div>
 
-  <!-- TRAMPA 2 -->
   <div class="card">
     <div class="top">
       <div>Trampa 02</div>
       <div class="status ok">EN ESPERA</div>
     </div>
-    <div class="meta">Sin eventos recientes</div>
+    <div class="meta">Sin eventos</div>
 
     <div class="sensors">
-      <div class="sensor">Movimiento: ✖</div>
-      <div class="sensor">Distancia: —</div>
-      <div class="sensor">Temp: 20°C</div>
-      <div class="sensor">Batería: 91%</div>
+      <div class="sensor">Movimiento ✖</div>
+      <div class="sensor">Batería 91%</div>
     </div>
 
     <div class="controls">
-      <button>Habilitar</button>
-      <button>Ver última imagen</button>
-    </div>
-  </div>
-
-  <!-- TRAMPA 3 -->
-  <div class="card">
-    <div class="top">
-      <div>Trampa 03</div>
-      <div class="status warn">ATENCIÓN</div>
-    </div>
-    <div class="meta">Movimiento leve detectado</div>
-
-    <div class="sensors">
-      <div class="sensor">Movimiento: ⚠</div>
-      <div class="sensor">Distancia: 45 mm</div>
-      <div class="sensor">Temp: 22°C</div>
-      <div class="sensor">Batería: 76%</div>
-    </div>
-
-    <div class="controls">
-      <button>Ver cámara</button>
-      <button>Capturar</button>
-    </div>
-  </div>
-
-  <!-- TRAMPA 4 -->
-  <div class="card">
-    <div class="top">
-      <div>Trampa 04</div>
-      <div class="status ok">EN ESPERA</div>
-    </div>
-    <div class="meta">Sin actividad</div>
-
-    <div class="sensors">
-      <div class="sensor">Movimiento: ✖</div>
-      <div class="sensor">Temp: 19°C</div>
-      <div class="sensor">Batería: 88%</div>
-    </div>
-  </div>
-
-  <!-- TRAMPA 5 -->
-  <div class="card">
-    <div class="top">
-      <div>Trampa 05</div>
-      <div class="status ok">EN ESPERA</div>
-    </div>
-    <div class="meta">Sin actividad</div>
-
-    <div class="sensors">
-      <div class="sensor">Movimiento: ✖</div>
-      <div class="sensor">Batería: 95%</div>
+      <button class="ctrl">Habilitar</button>
     </div>
   </div>
 
 </section>
 
-</body>
-</html>
+<script>
+function toggleTheme(){
+  const html=document.documentElement
+  const theme=html.getAttribute("data-theme")==="dark"?"light":"dark"
+  html.setAttribute("data-theme",theme)
+  localStorage.setItem("theme",theme)
+}
+
+const savedTheme=localStorage.getItem("theme")
+if(savedTheme){
+  document
