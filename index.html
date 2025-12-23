@@ -36,18 +36,26 @@ body{
   padding:20px;
 }
 
+/* ========= HEADER ========= */
 header{
+  position:relative;
   display:flex;
-  justify-content:space-between;
+  justify-content:center;
   align-items:center;
   margin-bottom:20px;
 }
 
-header .brand img{
-  height:80px; /* Logo más grande */
+header .logo{
+  height:110px;
   width:auto;
 }
 
+header button{
+  position:absolute;
+  right:0;
+}
+
+/* ========= BOTONES ========= */
 button{
   background:var(--card);
   color:var(--text);
@@ -57,6 +65,7 @@ button{
   cursor:pointer;
 }
 
+/* ========= GRID ========= */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
@@ -139,7 +148,6 @@ button{
   color:var(--muted);
 }
 
-/* ======== FIX INPUTS ======== */
 .sleep-config input{
   width:100%;
   margin-top:4px;
@@ -174,9 +182,7 @@ button{
 <body data-theme="dark">
 
 <header>
-  <div class="brand">
-    <img src="logo.png" alt="IguanaLab" class="logo">
-  </div>
+  <img src="logo_iguanalab.png" alt="IguanaLab" class="logo">
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
