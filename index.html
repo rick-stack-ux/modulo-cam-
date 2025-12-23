@@ -1,262 +1,229 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
+<title>AURUM.SYS | Trampas IoT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Trampas Inteligentes</title>
 
 <style>
-/* =====================
-   VARIABLES DE TEMA
-===================== */
 :root{
-  --bg:#f1f5f9;
+  --bg:#0f172a;
+  --card:#111827;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --accent:#22c55e;
+  --alert:#ef4444;
+  --border:#1f2937;
+}
+
+body[data-theme="light"]{
+  --bg:#f8fafc;
   --card:#ffffff;
   --text:#0f172a;
-  --muted:#64748b;
-  --border:#e2e8f0;
-  --accent:#2563eb;
-  --ok:#16a34a;
-  --warn:#d97706;
-  --alarm:#dc2626;
+  --muted:#475569;
+  --accent:#16a34a;
+  --alert:#dc2626;
+  --border:#e5e7eb;
 }
 
-[data-theme="dark"]{
-  --bg:#0f1720;
-  --card:#151f2c;
-  --text:#e5e7eb;
-  --muted:#94a3b8;
-  --border:#1e293b;
-  --accent:#3b82f6;
-  --ok:#22c55e;
-  --warn:#f59e0b;
-  --alarm:#ef4444;
-}
-
-*{box-sizing:border-box;font-family:system-ui,sans-serif}
-
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-  margin:0;
+  font-family:system-ui, sans-serif;
   background:var(--bg);
   color:var(--text);
+  padding:20px;
 }
 
-/* =====================
-   HEADER
-===================== */
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:14px 20px;
-  border-bottom:1px solid var(--border);
+  margin-bottom:20px;
 }
 
-header span{
-  font-weight:600;
-}
+h1{font-size:1.4rem}
 
-header button{
-  background:transparent;
-  border:1px solid var(--border);
+button{
+  background:var(--card);
   color:var(--text);
-  padding:6px 10px;
-  border-radius:8px;
+  border:1px solid var(--border);
+  padding:8px 12px;
+  border-radius:10px;
   cursor:pointer;
 }
 
-/* =====================
-   GRID RESPONSIVO
-===================== */
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:16px;
-  padding:16px;
 }
 
-/* =====================
-   TARJETAS
-===================== */
 .card{
   background:var(--card);
-  border-radius:14px;
-  padding:14px;
   border:1px solid var(--border);
-  transition:.3s;
-}
-
-.card.alarm{
-  outline:2px solid var(--alarm);
-}
-
-.top{
+  border-radius:16px;
+  padding:16px;
   display:flex;
-  justify-content:space-between;
-  align-items:center;
+  flex-direction:column;
+  gap:12px;
+}
+
+.card.alert{
+  border-color:var(--alert);
+}
+
+.card h2{
+  font-size:1rem;
 }
 
 .status{
+  display:flex;
+  justify-content:space-between;
+  font-size:.85rem;
+}
+
+.badge{
   padding:4px 10px;
   border-radius:20px;
   font-size:.75rem;
-  font-weight:600;
+  background:var(--accent);
+  color:#022c22;
 }
 
-.ok{background:rgba(22,163,74,.15);color:var(--ok)}
-.warn{background:rgba(217,119,6,.15);color:var(--warn)}
-.alarm-badge{background:rgba(220,38,38,.15);color:var(--alarm)}
-
-.meta{
-  font-size:.75rem;
-  color:var(--muted);
-  margin-top:4px;
+.badge.off{
+  background:var(--muted);
+  color:#000;
 }
 
-/* =====================
-   IMAGEN (SOLO EVENTO)
-===================== */
-.preview{
+.camera{
+  background:#000;
+  border-radius:12px;
+  height:140px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:.8rem;
+  color:#9ca3af;
+}
+
+.camera.hidden{
   display:none;
-  margin-top:10px;
-  border-radius:10px;
-  overflow:hidden;
 }
 
-.card.alarm .preview{
-  display:block;
+.controls{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
 }
 
-.preview img{
-  width:100%;
-  height:180px;
-  object-fit:cover;
+.controls button{
+  flex:1;
+  font-size:.75rem;
 }
 
-/* =====================
-   SENSORES
-===================== */
-.sensors{
+.sleep-config{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
-  margin-top:10px;
   font-size:.75rem;
 }
 
-.sensor{
-  background:rgba(0,0,0,.05);
-  padding:6px 8px;
-  border-radius:8px;
-}
-
-/* =====================
-   CONTROLES
-===================== */
-.controls{
+.sleep-config label{
   display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:12px;
-}
-
-button.ctrl{
-  background:transparent;
-  border:1px solid var(--border);
-  color:var(--text);
-  padding:6px 10px;
-  border-radius:8px;
-  font-size:.75rem;
-  cursor:pointer;
-}
-
-button.ctrl:hover{
-  background:var(--accent);
-  color:#fff;
-}
-
-/* =====================
-   HISTORIAL
-===================== */
-.history{
-  margin-top:10px;
-  font-size:.7rem;
+  flex-direction:column;
   color:var(--muted);
 }
 
-/* =====================
-   MOBILE AJUSTES
-===================== */
-@media(max-width:480px){
-  header span{font-size:.9rem}
-  .preview img{height:150px}
+.sleep-config input{
+  margin-top:4px;
+  padding:6px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--text);
+}
+
+.history{
+  font-size:.7rem;
+  color:var(--muted);
 }
 </style>
 </head>
 
-<body>
+<body data-theme="dark">
 
 <header>
-  <span>🪤 Trampas Inteligentes</span>
+  <h1>🛡️ AURUM.SYS · Trampas IoT</h1>
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
 <section class="grid">
 
-  <div class="card alarm">
-    <div class="top">
-      <div>Trampa 01</div>
-      <div class="status alarm-badge">ALARMA</div>
-    </div>
-    <div class="meta">Evento: 12:34:21</div>
+<!-- TRAMPA TEMPLATE x5 -->
+<script>
+for(let i=1;i<=5;i++){
+  document.write(`
+  <div class="card" id="trap${i}">
+    <h2>Trampa #${i}</h2>
 
-    <div class="preview">
-      <img src="https://placehold.co/600x400?text=Evento">
-    </div>
-
-    <div class="sensors">
-      <div class="sensor">Movimiento ✔</div>
-      <div class="sensor">Distancia 18mm</div>
-      <div class="sensor">Temp 21°C</div>
-      <div class="sensor">Batería 82%</div>
+    <div class="status">
+      <span>Estado:</span>
+      <span class="badge off">Sin evento</span>
     </div>
 
-    <div class="controls">
-      <button class="ctrl">Deshabilitar</button>
-      <button class="ctrl">Cámara</button>
-      <button class="ctrl">Capturar</button>
+    <div class="status">
+      <span>Batería:</span>
+      <span>87%</span>
     </div>
 
-    <div class="history">Historial ▸</div>
-  </div>
-
-  <div class="card">
-    <div class="top">
-      <div>Trampa 02</div>
-      <div class="status ok">EN ESPERA</div>
-    </div>
-    <div class="meta">Sin eventos</div>
-
-    <div class="sensors">
-      <div class="sensor">Movimiento ✖</div>
-      <div class="sensor">Batería 91%</div>
+    <div class="camera hidden">
+      Imagen / Cámara
     </div>
 
     <div class="controls">
-      <button class="ctrl">Habilitar</button>
+      <button onclick="showCam(${i})">📷 Ver cámara</button>
+      <button>🧾 Historial</button>
+      <button>⚙️ Ajustes</button>
+    </div>
+
+    <div class="sleep-config">
+      <label>
+        Deep Sleep (min)
+        <input type="number" value="15" min="1">
+      </label>
+      <label>
+        Activo (seg)
+        <input type="number" value="20" min="5">
+      </label>
+    </div>
+
+    <div class="history">
+      Último evento: --/-- --:--
     </div>
   </div>
+  `);
+}
+</script>
 
 </section>
 
 <script>
 function toggleTheme(){
-  const html=document.documentElement
-  const theme=html.getAttribute("data-theme")==="dark"?"light":"dark"
-  html.setAttribute("data-theme",theme)
-  localStorage.setItem("theme",theme)
+  const body=document.body;
+  const next=body.getAttribute("data-theme")==="dark"?"light":"dark";
+  body.setAttribute("data-theme",next);
+  localStorage.setItem("theme",next);
 }
 
-const savedTheme=localStorage.getItem("theme")
-if(savedTheme){
-  document
+const saved=localStorage.getItem("theme");
+if(saved) document.body.setAttribute("data-theme",saved);
+
+function showCam(id){
+  const card=document.getElementById("trap"+id);
+  const cam=card.querySelector(".camera");
+  cam.classList.toggle("hidden");
+}
+</script>
+
+</body>
+</html>
