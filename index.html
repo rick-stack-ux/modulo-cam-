@@ -6,15 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* =======================
-   VARIABLES DE COLOR
-======================= */
+/* ========= COLORES (MODIFICADO) ========= */
 :root{
-  --bg:#0b1f2a;
-  --card:#102a3a;
-  --text:#e6f1f5;
-  --muted:#8fb3c8;
-  --accent:#2dd4bf;
+  --bg:#0b1f2a;          /* azul petróleo */
+  --card:#102a3a;       /* azul verdoso */
+  --text:#e6f1f5;       /* texto claro */
+  --muted:#8fb3c8;      /* texto secundario */
+  --accent:#2dd4bf;     /* verde–celeste */
   --alert:#ef4444;
   --border:#164e63;
 }
@@ -29,63 +27,39 @@ body[data-theme="light"]{
   --border:#99f6e4;
 }
 
-/* =======================
-   BASE
-======================= */
-*{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+/* ========= BASE (IGUAL) ========= */
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-  margin:0;
+  font-family:system-ui, sans-serif;
   background:var(--bg);
   color:var(--text);
-  transition:background .3s,color .3s;
+  padding:20px;
 }
 
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:16px 20px;
-  border-bottom:1px solid var(--border);
+  margin-bottom:20px;
 }
 
-header h1{
-  font-size:1.2rem;
-  margin:0;
-  letter-spacing:.5px;
-}
+h1{font-size:1.4rem}
 
 button{
-  background:var(--accent);
-  border:none;
-  padding:8px 14px;
-  border-radius:8px;
-  color:#003b3b;
-  cursor:pointer;
-  font-weight:600;
-}
-
-button.secondary{
-  background:transparent;
+  background:var(--card);
   color:var(--text);
   border:1px solid var(--border);
-}
-
-/* =======================
-   GRID
-======================= */
-main{
-  padding:20px;
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
 }
 
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:18px;
+  gap:16px;
 }
 
-/* =======================
-   CARD
-======================= */
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -96,56 +70,84 @@ main{
   gap:12px;
 }
 
+.card.alert{
+  border-color:var(--alert);
+}
+
 .card h2{
-  margin:0;
   font-size:1rem;
 }
 
 .status{
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  font-size:.85rem;
 }
 
 .badge{
   padding:4px 10px;
-  border-radius:999px;
+  border-radius:20px;
   font-size:.75rem;
-  font-weight:600;
+  background:var(--accent);
+  color:#022c22;
 }
 
-.ok{background:rgba(45,212,191,.15);color:var(--accent)}
-.alert{background:rgba(239,68,68,.15);color:var(--alert)}
+.badge.off{
+  background:var(--muted);
+  color:#000;
+}
 
 .camera{
   background:#000;
   border-radius:12px;
-  height:160px;
+  height:140px;
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#6b7280;
-  font-size:.85rem;
+  font-size:.8rem;
+  color:#9ca3af;
+}
+
+.camera.hidden{
+  display:none;
 }
 
 .controls{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
 }
 
 .controls button{
-  width:100%;
+  flex:1;
+  font-size:.75rem;
 }
 
-/* =======================
-   FOOTER
-======================= */
-footer{
-  text-align:center;
-  padding:14px;
+.sleep-config{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  font-size:.75rem;
+}
+
+.sleep-config label{
+  display:flex;
+  flex-direction:column;
   color:var(--muted);
-  font-size:.8rem;
+}
+
+.sleep-config input{
+  margin-top:4px;
+  padding:6px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--text);
+}
+
+.history{
+  font-size:.7rem;
+  color:var(--muted);
 }
 </style>
 </head>
@@ -153,94 +155,74 @@ footer{
 <body data-theme="dark">
 
 <header>
-  <h1>AURUM.SYS · Trampas IoT</h1>
+  <h1>🛡️ AURUM.SYS · Trampas IoT</h1>
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
-<main>
-  <div class="grid">
+<section class="grid">
 
-    <!-- TRAMPA 1 -->
-    <div class="card">
-      <h2>Trampa #1</h2>
-      <div class="status">
-        <span class="badge ok">Sin actividad</span>
-        <span class="muted">Deep sleep: 10 min</span>
-      </div>
-      <div class="camera">Cámara inactiva</div>
-      <div class="controls">
-        <button class="secondary">Historial</button>
-        <button>Configurar</button>
-      </div>
+<script>
+for(let i=1;i<=5;i++){
+  document.write(`
+  <div class="card" id="trap${i}">
+    <h2>Trampa #${i}</h2>
+
+    <div class="status">
+      <span>Estado:</span>
+      <span class="badge off">Sin evento</span>
     </div>
 
-    <!-- TRAMPA 2 -->
-    <div class="card">
-      <h2>Trampa #2</h2>
-      <div class="status">
-        <span class="badge alert">Actividad detectada</span>
-        <span class="muted">Deep sleep: 5 min</span>
-      </div>
-      <div class="camera">📸 Imagen capturada</div>
-      <div class="controls">
-        <button class="secondary">Historial</button>
-        <button>Configurar</button>
-      </div>
+    <div class="status">
+      <span>Batería:</span>
+      <span>87%</span>
     </div>
 
-    <!-- TRAMPA 3 -->
-    <div class="card">
-      <h2>Trampa #3</h2>
-      <div class="status">
-        <span class="badge ok">Sin actividad</span>
-        <span class="muted">Deep sleep: 15 min</span>
-      </div>
-      <div class="camera">Cámara inactiva</div>
-      <div class="controls">
-        <button class="secondary">Historial</button>
-        <button>Configurar</button>
-      </div>
+    <div class="camera hidden">
+      Imagen / Cámara
     </div>
 
-    <!-- TRAMPA 4 -->
-    <div class="card">
-      <h2>Trampa #4</h2>
-      <div class="status">
-        <span class="badge ok">Sin actividad</span>
-        <span class="muted">Deep sleep: 10 min</span>
-      </div>
-      <div class="camera">Cámara inactiva</div>
-      <div class="controls">
-        <button class="secondary">Historial</button>
-        <button>Configurar</button>
-      </div>
+    <div class="controls">
+      <button onclick="showCam(${i})">📷 Ver cámara</button>
+      <button>🧾 Historial</button>
+      <button>⚙️ Ajustes</button>
     </div>
 
-    <!-- TRAMPA 5 -->
-    <div class="card">
-      <h2>Trampa #5</h2>
-      <div class="status">
-        <span class="badge ok">Sin actividad</span>
-        <span class="muted">Deep sleep: 20 min</span>
-      </div>
-      <div class="camera">Cámara inactiva</div>
-      <div class="controls">
-        <button class="secondary">Historial</button>
-        <button>Configurar</button>
-      </div>
+    <div class="sleep-config">
+      <label>
+        Deep Sleep (min)
+        <input type="number" value="15" min="1">
+      </label>
+      <label>
+        Activo (seg)
+        <input type="number" value="20" min="5">
+      </label>
     </div>
 
+    <div class="history">
+      Último evento: --/-- --:--
+    </div>
   </div>
-</main>
+  `);
+}
+</script>
 
-<footer>
-  © 2025 · Aurum.sys · Plataforma IoT
-</footer>
+</section>
 
 <script>
 function toggleTheme(){
-  document.body.dataset.theme =
-    document.body.dataset.theme === "dark" ? "light" : "dark";
+  const body=document.body;
+  const next=body.getAttribute("data-theme")==="dark"?"light":"dark";
+  body.setAttribute("data-theme",next);
+  localStorage.setItem("theme",next);
+}
+
+const saved=localStorage.getItem("theme");
+if(saved) document.body.setAttribute("data-theme",saved);
+
+function showCam(id){
+  const card=document.getElementById("trap"+id);
+  const cam=card.querySelector(".camera");
+  cam.classList.toggle("hidden");
 }
 </script>
 
