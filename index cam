@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>AURUM.SYS | Trampas IoT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Firebase (luego se activará) -->
+  <!--
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js"></script>
+  -->
+
+  <style>
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:#0f172a;
+      color:#e5e7eb;
+    }
+
+    header{
+      background:#020617;
+      padding:15px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    header img{
+      height:40px;
+    }
+
+    header h1{
+      font-size:18px;
+      margin:0;
+      font-weight:500;
+    }
+
+    .container{
+      padding:20px;
+      max-width:1000px;
+      margin:auto;
+    }
+
+    .card{
+      background:#020617;
+      border-radius:10px;
+      padding:15px;
+      margin-bottom:20px;
+      box-shadow:0 0 10px rgba(0,0,0,.4);
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:#22c55e;
+    }
+
+    .image-box{
+      margin-top:15px;
+      text-align:center;
+    }
+
+    .image-box img{
+      max-width:100%;
+      border-radius:8px;
+      border:2px solid #1e293b;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+    }
+
+    table th, table td{
+      padding:10px;
+      border-bottom:1px solid #1e293b;
+      text-align:left;
+      font-size:14px;
+    }
+
+    footer{
+      text-align:center;
+      padding:15px;
+      font-size:12px;
+      color:#94a3b8;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <!-- Logo del cliente -->
+  <img src="logo.png" alt="Logo cliente">
+  <h1>Panel de Monitoreo – Trampas IoT</h1>
+</header>
+
+<div class="container">
+
+  <!-- Estado -->
+  <div class="card">
+    <h2>Estado del sistema</h2>
+    <div class="status">
+      <div class="dot"></div>
+      <span>Sistema activo / último evento OK</span>
+    </div>
+  </div>
+
+  <!-- Último evento -->
+  <div class="card">
+    <h2>Última detección</h2>
+    <p><strong>Fecha:</strong> 21-12-2025</p>
+    <p><strong>Hora:</strong> 14:32</p>
+    <p><strong>Sensor:</strong> Trampa #1</p>
+
+    <div class="image-box">
+      <!-- Imagen de prueba -->
+      <img src="https://via.placeholder.com/600x400?text=Imagen+de+Evento" alt="Evento">
+    </div>
+  </div>
+
+  <!-- Historial -->
+  <div class="card">
+    <h2>Historial de eventos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Dispositivo</th>
+          <th>Evento</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>21-12-2025</td>
+          <td>14:32</td>
+          <td>Trampa #1</td>
+          <td>Movimiento detectado</td>
+        </tr>
+        <tr>
+          <td>21-12-2025</td>
+          <td>11:05</td>
+          <td>Trampa #2</td>
+          <td>Movimiento detectado</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  © 2025 Aurum.sys – Plataforma IoT
+</footer>
+
+</body>
+</html>
