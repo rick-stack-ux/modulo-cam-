@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>AURUM.SYS | Trampas IoT</title>
+<title>IguanaLab | Trampas IoT</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -41,6 +41,16 @@ header{
   justify-content:space-between;
   align-items:center;
   margin-bottom:20px;
+}
+
+header .brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+header img{
+  height:38px;
 }
 
 h1{font-size:1.4rem}
@@ -136,11 +146,9 @@ button{
   color:var(--muted);
 }
 
-/* ======== FIX INPUTS (SIN CAMBIAR ESTRUCTURA) ======== */
+/* ======== FIX INPUTS ======== */
 .sleep-config input{
   width:100%;
-  max-width:100%;
-  box-sizing:border-box;
   margin-top:4px;
   padding:6px;
   font-size:.75rem;
@@ -151,14 +159,12 @@ button{
   appearance:textfield;
 }
 
-/* elimina flechas */
 .sleep-config input::-webkit-outer-spin-button,
 .sleep-config input::-webkit-inner-spin-button{
   -webkit-appearance:none;
   margin:0;
 }
 
-/* responsive móvil */
 @media (max-width:480px){
   .sleep-config{
     grid-template-columns:1fr;
@@ -175,7 +181,10 @@ button{
 <body data-theme="dark">
 
 <header>
-  <h1>🛡️ AURUM.SYS · Trampas IoT</h1>
+  <div class="brand">
+    <img src="logo.png" alt="IguanaLab">
+    <h1>🦎 IguanaLab · Trampas IoT</h1>
+  </div>
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
