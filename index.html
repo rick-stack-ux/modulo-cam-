@@ -43,17 +43,10 @@ header{
   margin-bottom:20px;
 }
 
-header .brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
+header .brand img{
+  height:80px; /* Logo más grande */
+  width:auto;
 }
-
-header img{
-  height:38px;
-}
-
-h1{font-size:1.4rem}
 
 button{
   background:var(--card);
@@ -183,7 +176,6 @@ button{
 <header>
   <div class="brand">
     <img src="logo.png" alt="IguanaLab">
-    <h1>🦎 IguanaLab · Trampas IoT</h1>
   </div>
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
