@@ -6,13 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ========= COLORES (MODIFICADO) ========= */
+/* ========= COLORES ========= */
 :root{
-  --bg:#0b1f2a;          /* azul petróleo */
-  --card:#102a3a;       /* azul verdoso */
-  --text:#e6f1f5;       /* texto claro */
-  --muted:#8fb3c8;      /* texto secundario */
-  --accent:#2dd4bf;     /* verde–celeste */
+  --bg:#0b1f2a;
+  --card:#102a3a;
+  --text:#e6f1f5;
+  --muted:#8fb3c8;
+  --accent:#2dd4bf;
   --alert:#ef4444;
   --border:#164e63;
 }
@@ -27,7 +27,7 @@ body[data-theme="light"]{
   --border:#99f6e4;
 }
 
-/* ========= BASE (IGUAL) ========= */
+/* ========= BASE ========= */
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:system-ui, sans-serif;
@@ -136,13 +136,33 @@ button{
   color:var(--muted);
 }
 
+/* ======== FIX INPUTS (SIN CAMBIAR ESTRUCTURA) ======== */
 .sleep-config input{
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
   margin-top:4px;
   padding:6px;
+  font-size:.75rem;
   border-radius:8px;
   border:1px solid var(--border);
   background:var(--bg);
   color:var(--text);
+  appearance:textfield;
+}
+
+/* elimina flechas */
+.sleep-config input::-webkit-outer-spin-button,
+.sleep-config input::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+
+/* responsive móvil */
+@media (max-width:480px){
+  .sleep-config{
+    grid-template-columns:1fr;
+  }
 }
 
 .history{
