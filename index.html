@@ -53,23 +53,15 @@ header button{
   right:0;
 }
 
-/* BOTÓN GLOBAL */
-.global-toggle{
-  position:absolute;
-  left:0;
-  background:var(--accent);
-  color:#052e1c;
-  font-size:.75rem;
-}
-
 /* BOTONES */
 button{
   background:var(--card);
   color:var(--text);
   border:1px solid var(--border);
-  padding:8px 12px;
+  padding:8px 10px;
   border-radius:10px;
   cursor:pointer;
+  font-size:.75rem;
 }
 
 /* GRID */
@@ -132,7 +124,6 @@ button{
 
 .controls button{
   flex:1;
-  font-size:.75rem;
 }
 
 /* SUBMENU AJUSTES */
@@ -160,21 +151,22 @@ button{
   width:60%;
 }
 
-/* SLEEP */
+/* SLEEP CONFIG */
 .sleep-config{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
-  font-size:.75rem;
 }
 
 .sleep-config label{
   display:flex;
   flex-direction:column;
+  font-size:.75rem;
   color:var(--muted);
 }
 
 .sleep-config input{
+  width:100%;
   margin-top:4px;
   padding:6px;
   border-radius:8px;
@@ -193,7 +185,6 @@ button{
 <body data-theme="dark">
 
 <header>
-  <button class="global-toggle" onclick="toggleModules()">🔌 Módulos ON</button>
   <img src="logo.png" class="logo">
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
@@ -201,12 +192,10 @@ button{
 <section class="grid">
 
 <script>
-let modulesOn=true;
-
-function toggleModules(){
-  modulesOn=!modulesOn;
-  document.querySelector(".global-toggle").textContent =
-    modulesOn ? "🔌 Módulos ON" : "⛔ Módulos OFF";
+function toggleModule(btn){
+  const active = btn.dataset.active === "true";
+  btn.dataset.active = !active;
+  btn.textContent = active ? "⛔ Desactivado" : "🔌 Activo";
 }
 
 for(let i=1;i<=5;i++){
@@ -219,10 +208,12 @@ for(let i=1;i<=5;i++){
       <span class="badge off">Sin evento</span>
     </div>
 
+    <button onclick="toggleModule(this)" data-active="true">🔌 Activo</button>
+
     <div class="camera hidden">Imagen / Cámara</div>
 
     <div class="controls">
-      <button onclick="showCam(${i})">📷 Ver cámara</button>
+      <button onclick="showCam(${i})">📷 Cámara</button>
       <button onclick="toggleSettings(${i})">⚙️ Ajustes</button>
     </div>
 
@@ -253,8 +244,10 @@ for(let i=1;i<=5;i++){
 <script>
 function toggleTheme(){
   const body=document.body;
-  const next=body.getAttribute("data-theme")==="dark"?"light":"dark";
-  body.setAttribute("data-theme",next);
+  body.setAttribute(
+    "data-theme",
+    body.getAttribute("data-theme")==="dark"?"light":"dark"
+  );
 }
 
 function showCam(i){
@@ -268,4 +261,3 @@ function toggleSettings(i){
 
 </body>
 </html>
-
