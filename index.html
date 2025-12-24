@@ -29,6 +29,7 @@ body[data-theme="light"]{
 
 /* ========= BASE ========= */
 *{box-sizing:border-box;margin:0;padding:0}
+
 body{
   font-family:system-ui, sans-serif;
   background:var(--bg);
@@ -42,10 +43,10 @@ header{
   display:flex;
   justify-content:center;
   align-items:center;
-  margin-bottom:20px;
+  margin-bottom:24px;
 }
 
-header .logo{
+header img.logo{
   height:110px;
   width:auto;
 }
@@ -182,7 +183,7 @@ button{
 <body data-theme="dark">
 
 <header>
-  <img src="logo_iguanalab.png" alt="IguanaLab" class="logo">
+  <img src="logo.png" alt="IguanaLab" class="logo">
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
@@ -238,7 +239,7 @@ for(let i=1;i<=5;i++){
 <script>
 function toggleTheme(){
   const body=document.body;
-  const next=body.getAttribute("data-theme")==="dark"?"light":"dark";
+  const next=body.getAttribute("data-theme")==="dark" ? "light" : "dark";
   body.setAttribute("data-theme",next);
   localStorage.setItem("theme",next);
 }
