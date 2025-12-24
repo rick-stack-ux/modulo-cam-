@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ========= COLORES – IguanaLab ========= */
 :root{
   --bg:#081411;
   --card:#0f1f1a;
@@ -27,7 +26,6 @@ body[data-theme="light"]{
   --border:#a7f3d0;
 }
 
-/* ========= BASE ========= */
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
@@ -37,7 +35,7 @@ body{
   padding:20px;
 }
 
-/* ========= HEADER ========= */
+/* HEADER */
 header{
   position:relative;
   display:flex;
@@ -48,7 +46,6 @@ header{
 
 header img.logo{
   height:110px;
-  width:auto;
 }
 
 header button{
@@ -56,7 +53,16 @@ header button{
   right:0;
 }
 
-/* ========= BOTONES ========= */
+/* BOTÓN GLOBAL */
+.global-toggle{
+  position:absolute;
+  left:0;
+  background:var(--accent);
+  color:#052e1c;
+  font-size:.75rem;
+}
+
+/* BOTONES */
 button{
   background:var(--card);
   color:var(--text);
@@ -66,11 +72,7 @@ button{
   cursor:pointer;
 }
 
-button:hover{
-  border-color:var(--accent);
-}
-
-/* ========= GRID ========= */
+/* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
@@ -87,14 +89,7 @@ button:hover{
   gap:12px;
 }
 
-.card.alert{
-  border-color:var(--alert);
-}
-
-.card h2{
-  font-size:1rem;
-}
-
+/* ESTADO */
 .status{
   display:flex;
   justify-content:space-between;
@@ -111,9 +106,9 @@ button:hover{
 
 .badge.off{
   background:var(--muted);
-  color:#06271a;
 }
 
+/* CAMARA */
 .camera{
   background:#020c09;
   border-radius:12px;
@@ -129,10 +124,10 @@ button:hover{
   display:none;
 }
 
+/* CONTROLES */
 .controls{
   display:flex;
   gap:8px;
-  flex-wrap:wrap;
 }
 
 .controls button{
@@ -140,6 +135,32 @@ button:hover{
   font-size:.75rem;
 }
 
+/* SUBMENU AJUSTES */
+.settings{
+  display:none;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px;
+  font-size:.7rem;
+  gap:6px;
+}
+
+.settings.active{
+  display:grid;
+}
+
+.settings label{
+  display:flex;
+  justify-content:space-between;
+  color:var(--muted);
+}
+
+.settings input{
+  width:60%;
+}
+
+/* SLEEP */
 .sleep-config{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -154,27 +175,12 @@ button:hover{
 }
 
 .sleep-config input{
-  width:100%;
   margin-top:4px;
   padding:6px;
-  font-size:.75rem;
   border-radius:8px;
   border:1px solid var(--border);
   background:var(--bg);
   color:var(--text);
-  appearance:textfield;
-}
-
-.sleep-config input::-webkit-outer-spin-button,
-.sleep-config input::-webkit-inner-spin-button{
-  -webkit-appearance:none;
-  margin:0;
-}
-
-@media (max-width:480px){
-  .sleep-config{
-    grid-template-columns:1fr;
-  }
 }
 
 .history{
@@ -187,16 +193,25 @@ button:hover{
 <body data-theme="dark">
 
 <header>
-  <img src="logo.png" alt="IguanaLab" class="logo">
+  <button class="global-toggle" onclick="toggleModules()">🔌 Módulos ON</button>
+  <img src="logo.png" class="logo">
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
 <section class="grid">
 
 <script>
+let modulesOn=true;
+
+function toggleModules(){
+  modulesOn=!modulesOn;
+  document.querySelector(".global-toggle").textContent =
+    modulesOn ? "🔌 Módulos ON" : "⛔ Módulos OFF";
+}
+
 for(let i=1;i<=5;i++){
   document.write(`
-  <div class="card" id="trap${i}">
+  <div class="card">
     <h2>Trampa #${i}</h2>
 
     <div class="status">
@@ -204,35 +219,30 @@ for(let i=1;i<=5;i++){
       <span class="badge off">Sin evento</span>
     </div>
 
-    <div class="status">
-      <span>Batería:</span>
-      <span>87%</span>
-    </div>
-
-    <div class="camera hidden">
-      Imagen / Cámara
-    </div>
+    <div class="camera hidden">Imagen / Cámara</div>
 
     <div class="controls">
       <button onclick="showCam(${i})">📷 Ver cámara</button>
-      <button>🧾 Historial</button>
-      <button>⚙️ Ajustes</button>
+      <button onclick="toggleSettings(${i})">⚙️ Ajustes</button>
+    </div>
+
+    <div class="settings" id="settings${i}">
+      <label>Zoom <input type="range"></label>
+      <label>Brillo <input type="range"></label>
+      <label>Contraste <input type="range"></label>
+      <label>Filtro <input type="checkbox"></label>
     </div>
 
     <div class="sleep-config">
-      <label>
-        Deep Sleep (min)
-        <input type="number" value="15" min="1">
+      <label>Deep Sleep (min)
+        <input type="number" value="15">
       </label>
-      <label>
-        Activo (seg)
-        <input type="number" value="20" min="5">
+      <label>Activo (seg)
+        <input type="number" value="20">
       </label>
     </div>
 
-    <div class="history">
-      Último evento: --/-- --:--
-    </div>
+    <div class="history">Último evento: --/-- --:--</div>
   </div>
   `);
 }
@@ -243,20 +253,19 @@ for(let i=1;i<=5;i++){
 <script>
 function toggleTheme(){
   const body=document.body;
-  const next=body.getAttribute("data-theme")==="dark" ? "light" : "dark";
+  const next=body.getAttribute("data-theme")==="dark"?"light":"dark";
   body.setAttribute("data-theme",next);
-  localStorage.setItem("theme",next);
 }
 
-const saved=localStorage.getItem("theme");
-if(saved) document.body.setAttribute("data-theme",saved);
+function showCam(i){
+  document.querySelectorAll(".camera")[i-1].classList.toggle("hidden");
+}
 
-function showCam(id){
-  const card=document.getElementById("trap"+id);
-  const cam=card.querySelector(".camera");
-  cam.classList.toggle("hidden");
+function toggleSettings(i){
+  document.getElementById("settings"+i).classList.toggle("active");
 }
 </script>
 
 </body>
 </html>
+
