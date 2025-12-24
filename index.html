@@ -64,17 +64,6 @@ header button{position:absolute;right:0}
   display:flex;
   flex-direction:column;
   gap:12px;
-  transition:.3s;
-}
-
-.card.alert{
-  border-color:var(--alert);
-  animation:pulse 1.5s infinite;
-}
-
-@keyframes pulse{
-  0%{box-shadow:0 0 0 0 rgba(255,176,32,.6)}
-  100%{box-shadow:0 0 0 8px rgba(255,176,32,0)}
 }
 
 /* MINI SWITCH */
@@ -90,31 +79,24 @@ header button{position:absolute;right:0}
 }
 
 .module-toggle.off{background:#555}
-.module-toggle.alert{background:var(--alert)}
 
 /* PREVIEW */
 .preview{
   background:#020c09;
   border-radius:12px;
-  height:140px;
+  height:120px;
   display:flex;
   flex-direction:column;
-  align-items:center;
   justify-content:center;
-  cursor:pointer;
-}
-
-.preview img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  border-radius:12px;
+  align-items:center;
+  font-size:.75rem;
+  color:#9ca3af;
+  gap:6px;
 }
 
 .preview span{
-  font-size:.65rem;
   color:var(--muted);
-  margin-top:4px;
+  font-size:.7rem;
 }
 
 /* CONTROLES */
@@ -134,7 +116,7 @@ header button{position:absolute;right:0}
   cursor:pointer;
 }
 
-/* AJUSTES */
+/* SUBMENU AJUSTES */
 .settings{
   display:none;
   background:var(--bg);
@@ -155,6 +137,7 @@ header button{position:absolute;right:0}
 
 .settings input{width:60%}
 
+/* HISTORIAL */
 .history{
   font-size:.7rem;
   color:var(--muted);
@@ -171,16 +154,11 @@ header button{position:absolute;right:0}
 
 <section class="grid" id="grid"></section>
 
-<audio id="alertSound">
-  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
-</audio>
-
 <script>
 function toggleTheme(){
-  const body=document.body;
-  body.setAttribute(
+  document.body.setAttribute(
     "data-theme",
-    body.getAttribute("data-theme")==="dark"?"light":"dark"
+    document.body.getAttribute("data-theme")==="dark"?"light":"dark"
   );
 }
 
@@ -192,41 +170,35 @@ function toggleModule(el){
   el.classList.toggle("off");
 }
 
-function timeAgo(ts){
-  const diff=Math.floor((Date.now()-ts)/1000);
-  if(diff<60) return `Hace ${diff}s`;
-  if(diff<3600) return `Hace ${Math.floor(diff/60)} min`;
-  if(diff<86400) return `Hace ${Math.floor(diff/3600)} h`;
-  return `Hace ${Math.floor(diff/86400)} días`;
-}
-
-function triggerAlert(card){
-  const now=Date.now();
-  card.classList.add("alert");
-  card.querySelector(".module-toggle").classList.add("alert");
-  card.querySelector(".history").textContent=`Último evento: ${timeAgo(now)}`;
-  document.getElementById("alertSound").play();
-
-  setTimeout(()=>{
-    card.classList.remove("alert");
-    card.querySelector(".module-toggle").classList.remove("alert");
-  },6000);
+/* TIEMPO RELATIVO */
+function timeAgo(ms){
+  const s=Math.floor(ms/1000);
+  if(s<60) return "Hace segundos";
+  const m=Math.floor(s/60);
+  if(m<60) return `Hace ${m} min`;
+  const h=Math.floor(m/60);
+  if(h<24) return `Hace ${h} h`;
+  const d=Math.floor(h/24);
+  return `Hace ${d} días`;
 }
 
 /* GENERAR TRAMPAS */
 const grid=document.getElementById("grid");
 
 for(let i=0;i<5;i++){
+  const lastEvent=Date.now()-(Math.random()*7200000);
+
   const card=document.createElement("div");
   card.className="card";
 
   card.innerHTML=`
     <div class="module-toggle" onclick="toggleModule(this)"></div>
+
     <h2>Trampa #${i+1}</h2>
 
-    <div class="preview" ondblclick="triggerAlert(this.closest('.card'))">
-      <img src="https://picsum.photos/400/300?random=${i}">
-      <span>Última captura</span>
+    <div class="preview">
+      Última captura
+      <span>Sin imagen</span>
     </div>
 
     <div class="controls">
@@ -241,7 +213,7 @@ for(let i=0;i<5;i++){
       <label>Filtro <input type="checkbox"></label>
     </div>
 
-    <div class="history">Último evento: --</div>
+    <div class="history">Último evento: ${timeAgo(Date.now()-lastEvent)}</div>
   `;
 
   grid.appendChild(card);
