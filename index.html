@@ -12,7 +12,6 @@
   --text:#e6f7f1;
   --muted:#7fbfa6;
   --accent:#39ff9c;
-  --alert:#ff4d4d;
   --border:#1f3d32;
 }
 
@@ -22,7 +21,6 @@ body[data-theme="light"]{
   --text:#0b1a14;
   --muted:#3a7a63;
   --accent:#22c55e;
-  --alert:#dc2626;
   --border:#a7f3d0;
 }
 
@@ -53,17 +51,6 @@ header button{
   right:0;
 }
 
-/* BOTONES */
-button{
-  background:var(--card);
-  color:var(--text);
-  border:1px solid var(--border);
-  padding:8px 10px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:.75rem;
-}
-
 /* GRID */
 .grid{
   display:grid;
@@ -71,7 +58,9 @@ button{
   gap:16px;
 }
 
+/* CARD */
 .card{
+  position:relative;
   background:var(--card);
   border:1px solid var(--border);
   border-radius:16px;
@@ -81,23 +70,20 @@ button{
   gap:12px;
 }
 
-/* ESTADO */
-.status{
-  display:flex;
-  justify-content:space-between;
-  font-size:.85rem;
-}
-
-.badge{
-  padding:4px 10px;
-  border-radius:20px;
-  font-size:.75rem;
+/* MINI SWITCH */
+.module-toggle{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
   background:var(--accent);
-  color:#052e1c;
+  cursor:pointer;
 }
 
-.badge.off{
-  background:var(--muted);
+.module-toggle.off{
+  background:#555;
 }
 
 /* CAMARA */
@@ -124,6 +110,13 @@ button{
 
 .controls button{
   flex:1;
+  font-size:.75rem;
+  background:var(--card);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:8px;
+  border-radius:10px;
+  cursor:pointer;
 }
 
 /* SUBMENU AJUSTES */
@@ -151,30 +144,6 @@ button{
   width:60%;
 }
 
-/* SLEEP CONFIG */
-.sleep-config{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
-
-.sleep-config label{
-  display:flex;
-  flex-direction:column;
-  font-size:.75rem;
-  color:var(--muted);
-}
-
-.sleep-config input{
-  width:100%;
-  margin-top:4px;
-  padding:6px;
-  border-radius:8px;
-  border:1px solid var(--border);
-  background:var(--bg);
-  color:var(--text);
-}
-
 .history{
   font-size:.7rem;
   color:var(--muted);
@@ -192,23 +161,12 @@ button{
 <section class="grid">
 
 <script>
-function toggleModule(btn){
-  const active = btn.dataset.active === "true";
-  btn.dataset.active = !active;
-  btn.textContent = active ? "⛔ Desactivado" : "🔌 Activo";
-}
-
 for(let i=1;i<=5;i++){
   document.write(`
   <div class="card">
+    <div class="module-toggle" onclick="toggleModule(this)"></div>
+
     <h2>Trampa #${i}</h2>
-
-    <div class="status">
-      <span>Estado:</span>
-      <span class="badge off">Sin evento</span>
-    </div>
-
-    <button onclick="toggleModule(this)" data-active="true">🔌 Activo</button>
 
     <div class="camera hidden">Imagen / Cámara</div>
 
@@ -222,15 +180,6 @@ for(let i=1;i<=5;i++){
       <label>Brillo <input type="range"></label>
       <label>Contraste <input type="range"></label>
       <label>Filtro <input type="checkbox"></label>
-    </div>
-
-    <div class="sleep-config">
-      <label>Deep Sleep (min)
-        <input type="number" value="15">
-      </label>
-      <label>Activo (seg)
-        <input type="number" value="20">
-      </label>
     </div>
 
     <div class="history">Último evento: --/-- --:--</div>
@@ -256,6 +205,10 @@ function showCam(i){
 
 function toggleSettings(i){
   document.getElementById("settings"+i).classList.toggle("active");
+}
+
+function toggleModule(el){
+  el.classList.toggle("off");
 }
 </script>
 
