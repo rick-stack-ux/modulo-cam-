@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -77,29 +77,33 @@ header button{position:absolute;right:0}
   background:var(--accent);
   cursor:pointer;
 }
-
 .module-toggle.off{background:#555}
 
-/* WIFI */
+/* WIFI ANTENA */
 .wifi{
   position:absolute;
   top:12px;
   left:12px;
-  display:flex;
-  gap:3px;
+  width:22px;
+  height:16px;
 }
 
-.wifi span{
-  width:4px;
-  height:8px;
-  background:var(--border);
-  border-radius:2px;
-  opacity:.3;
+.wifi svg{
+  width:100%;
+  height:100%;
 }
 
-.wifi.good span:nth-child(-n+3){opacity:1;background:var(--accent)}
-.wifi.medium span:nth-child(-n+2){opacity:1;background:var(--alert)}
-.wifi.bad span:nth-child(1){opacity:1;background:#ef4444}
+.wifi path{
+  fill:none;
+  stroke-width:2;
+  stroke-linecap:round;
+  opacity:.25;
+}
+
+/* niveles */
+.wifi[data-signal="3"] path:nth-child(-n+3){opacity:1;stroke:#39ff9c}
+.wifi[data-signal="2"] path:nth-child(-n+2){opacity:1;stroke:#ffb020}
+.wifi[data-signal="1"] path:nth-child(1){opacity:1;stroke:#ef4444}
 
 /* PREVIEW */
 .preview{
@@ -147,7 +151,6 @@ header button{position:absolute;right:0}
   font-size:.7rem;
   gap:6px;
 }
-
 .settings.active{display:grid}
 
 .settings label{
@@ -155,7 +158,6 @@ header button{position:absolute;right:0}
   justify-content:space-between;
   color:var(--muted);
 }
-
 .settings input{width:60%}
 
 /* HISTORIAL */
@@ -203,27 +205,23 @@ function timeAgo(ms){
   return `Hace ${d} días`;
 }
 
-/* WIFI SIMULADO (luego será RSSI real) */
-function wifiLevel(){
-  const r=Math.random();
-  if(r>0.66) return "good";
-  if(r>0.33) return "medium";
-  return "bad";
-}
-
 /* GENERAR TRAMPAS */
 const grid=document.getElementById("grid");
 
 for(let i=0;i<5;i++){
   const lastEvent=Date.now()-(Math.random()*7200000);
-  const wifi=wifiLevel();
+  const wifiLevel=Math.floor(Math.random()*3)+1;
 
   const card=document.createElement("div");
   card.className="card";
 
   card.innerHTML=`
-    <div class="wifi ${wifi}">
-      <span></span><span></span><span></span>
+    <div class="wifi" data-signal="${wifiLevel}">
+      <svg viewBox="0 0 24 16">
+        <path d="M2 14c5-5 15-5 20 0"/>
+        <path d="M6 14c3-3 9-3 12 0"/>
+        <path d="M10 14c1-1 3-1 4 0"/>
+      </svg>
     </div>
 
     <div class="module-toggle" onclick="toggleModule(this)"></div>
@@ -256,4 +254,3 @@ for(let i=0;i<5;i++){
 
 </body>
 </html>
-
