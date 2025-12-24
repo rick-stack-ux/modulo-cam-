@@ -13,9 +13,17 @@
   --muted:#7fbfa6;
   --accent:#39ff9c;
   --border:#1f3d32;
-  --wifi-good:#39ff9c;
-  --wifi-mid:#ffb020;
-  --wifi-bad:#ef4444;
+  --alert:#ffb020;
+}
+
+body[data-theme="light"]{
+  --bg:#f1fff9;
+  --card:#ffffff;
+  --text:#0b1a14;
+  --muted:#3a7a63;
+  --accent:#22c55e;
+  --border:#a7f3d0;
+  --alert:#f59e0b;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -35,7 +43,6 @@ header{
   align-items:center;
   margin-bottom:24px;
 }
-
 header img.logo{height:110px}
 header button{position:absolute;right:0}
 
@@ -58,81 +65,58 @@ header button{position:absolute;right:0}
   gap:12px;
 }
 
-/* STATUS TOP RIGHT */
-.status-top{
+/* TOP ICONS */
+.top-icons{
   position:absolute;
   top:12px;
   right:12px;
   display:flex;
+  gap:10px;
   align-items:center;
-  gap:8px;
 }
 
-/* MODULE DOT */
+/* MINI SWITCH */
 .module-toggle{
-  width:10px;
-  height:10px;
+  width:12px;
+  height:12px;
   border-radius:50%;
   background:var(--accent);
   cursor:pointer;
 }
 .module-toggle.off{background:#555}
 
-/* WIFI ANTENNA ICON (MODEL 4) */
+/* WIFI ANTENNA ICON */
 .wifi{
   position:relative;
-  width:16px;
-  height:12px;
+  width:18px;
+  height:14px;
 }
 
-.wifi::before,
-.wifi::after,
 .wifi span{
-  content:"";
   position:absolute;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
   border:2px solid transparent;
-  border-top-color:var(--wifi-good);
+  border-top-color:var(--accent);
   border-radius:50%;
+  opacity:.25;
 }
 
-.wifi::before{
-  width:16px;
-  height:16px;
-  top:-6px;
-  left:-2px;
+.wifi span:nth-child(1){
+  width:6px;height:6px;opacity:1;
+}
+.wifi span:nth-child(2){
+  width:12px;height:12px;
+}
+.wifi span:nth-child(3){
+  width:18px;height:18px;
 }
 
-.wifi span{
-  width:10px;
-  height:10px;
-  top:-3px;
-  left:1px;
-}
-
-.wifi::after{
-  width:4px;
-  height:4px;
-  top:2px;
-  left:4px;
-  background:var(--wifi-good);
-  border-radius:50%;
-  border:none;
-}
-
-/* WIFI LEVELS */
-.wifi.mid::before,
-.wifi.mid span,
-.wifi.mid::after{
-  border-top-color:var(--wifi-mid);
-  background:var(--wifi-mid);
-}
-
-.wifi.bad::before,
-.wifi.bad span,
-.wifi.bad::after{
-  border-top-color:var(--wifi-bad);
-  background:var(--wifi-bad);
-}
+.wifi.level-1 span:nth-child(1){opacity:1}
+.wifi.level-2 span:nth-child(1),
+.wifi.level-2 span:nth-child(2){opacity:1}
+.wifi.level-3 span{opacity:1}
 
 /* PREVIEW */
 .preview{
@@ -147,18 +131,16 @@ header button{position:absolute;right:0}
   color:#9ca3af;
   gap:6px;
 }
-
 .preview span{
   color:var(--muted);
   font-size:.7rem;
 }
 
-/* CONTROLS */
+/* CONTROLES */
 .controls{
   display:flex;
   gap:8px;
 }
-
 .controls button{
   flex:1;
   font-size:.75rem;
@@ -170,7 +152,7 @@ header button{position:absolute;right:0}
   cursor:pointer;
 }
 
-/* SETTINGS */
+/* SUBMENU AJUSTES */
 .settings{
   display:none;
   background:var(--bg);
@@ -180,18 +162,15 @@ header button{position:absolute;right:0}
   font-size:.7rem;
   gap:6px;
 }
-
 .settings.active{display:grid}
-
 .settings label{
   display:flex;
   justify-content:space-between;
   color:var(--muted);
 }
-
 .settings input{width:60%}
 
-/* HISTORY */
+/* HISTORIAL */
 .history{
   font-size:.7rem;
   color:var(--muted);
@@ -199,16 +178,23 @@ header button{position:absolute;right:0}
 </style>
 </head>
 
-<body>
+<body data-theme="dark">
 
 <header>
   <img src="logo.png" class="logo">
-  <button>🌗 Tema</button>
+  <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
 <section class="grid" id="grid"></section>
 
 <script>
+function toggleTheme(){
+  document.body.setAttribute(
+    "data-theme",
+    document.body.getAttribute("data-theme")==="dark"?"light":"dark"
+  );
+}
+
 function toggleSettings(i){
   document.getElementById("settings"+i).classList.toggle("active");
 }
@@ -217,20 +203,34 @@ function toggleModule(el){
   el.classList.toggle("off");
 }
 
+/* TIEMPO RELATIVO */
+function timeAgo(ms){
+  const s=Math.floor(ms/1000);
+  if(s<60) return "Hace segundos";
+  const m=Math.floor(s/60);
+  if(m<60) return `Hace ${m} min`;
+  const h=Math.floor(m/60);
+  if(h<24) return `Hace ${h} h`;
+  const d=Math.floor(h/24);
+  return `Hace ${d} días`;
+}
+
 /* GENERAR TRAMPAS */
 const grid=document.getElementById("grid");
 
 for(let i=0;i<5;i++){
-  const levels=["wifi","wifi mid","wifi bad"];
-  const wifiClass=levels[Math.floor(Math.random()*3)];
+  const lastEvent=Date.now()-(Math.random()*7200000);
+  const wifiLevel = Math.floor(Math.random()*3)+1;
 
   const card=document.createElement("div");
   card.className="card";
 
   card.innerHTML=`
-    <div class="status-top">
+    <div class="top-icons">
+      <div class="wifi level-${wifiLevel}">
+        <span></span><span></span><span></span>
+      </div>
       <div class="module-toggle" onclick="toggleModule(this)"></div>
-      <div class="${wifiClass}"><span></span></div>
     </div>
 
     <h2>Trampa #${i+1}</h2>
@@ -252,7 +252,7 @@ for(let i=0;i<5;i++){
       <label>Filtro <input type="checkbox"></label>
     </div>
 
-    <div class="history">Último evento: --</div>
+    <div class="history">Último evento: ${timeAgo(Date.now()-lastEvent)}</div>
   `;
 
   grid.appendChild(card);
