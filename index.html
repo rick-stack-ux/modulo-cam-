@@ -13,6 +13,7 @@
   --muted:#7fbfa6;
   --accent:#39ff9c;
   --border:#1f3d32;
+  --alert:#ffb020;
 }
 
 body[data-theme="light"]{
@@ -22,6 +23,7 @@ body[data-theme="light"]{
   --muted:#3a7a63;
   --accent:#22c55e;
   --border:#a7f3d0;
+  --alert:#f59e0b;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -42,14 +44,8 @@ header{
   margin-bottom:24px;
 }
 
-header img.logo{
-  height:110px;
-}
-
-header button{
-  position:absolute;
-  right:0;
-}
+header img.logo{height:110px}
+header button{position:absolute;right:0}
 
 /* GRID */
 .grid{
@@ -68,6 +64,18 @@ header button{
   display:flex;
   flex-direction:column;
   gap:12px;
+  transition:.3s;
+}
+
+.card.alert{
+  border-color:var(--alert);
+  box-shadow:0 0 0 2px var(--alert);
+  animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,176,32,.6)}
+  100%{box-shadow:0 0 0 8px rgba(255,176,32,0)}
 }
 
 /* MINI SWITCH */
@@ -82,8 +90,14 @@ header button{
   cursor:pointer;
 }
 
-.module-toggle.off{
-  background:#555;
+.module-toggle.off{background:#555}
+.module-toggle.alert{background:var(--alert)}
+
+/* ALERT LABEL */
+.alert-label{
+  font-size:.7rem;
+  color:var(--alert);
+  font-weight:600;
 }
 
 /* CAMARA */
@@ -98,9 +112,7 @@ header button{
   color:#9ca3af;
 }
 
-.camera.hidden{
-  display:none;
-}
+.camera.hidden{display:none}
 
 /* CONTROLES */
 .controls{
@@ -130,9 +142,7 @@ header button{
   gap:6px;
 }
 
-.settings.active{
-  display:grid;
-}
+.settings.active{display:grid}
 
 .settings label{
   display:flex;
@@ -140,9 +150,7 @@ header button{
   color:var(--muted);
 }
 
-.settings input{
-  width:60%;
-}
+.settings input{width:60%}
 
 .history{
   font-size:.7rem;
@@ -158,15 +166,61 @@ header button{
   <button onclick="toggleTheme()">🌗 Tema</button>
 </header>
 
-<section class="grid">
+<section class="grid" id="grid"></section>
+
+<audio id="alertSound">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
+</audio>
 
 <script>
-for(let i=1;i<=5;i++){
-  document.write(`
-  <div class="card">
-    <div class="module-toggle" onclick="toggleModule(this)"></div>
+function toggleTheme(){
+  const body=document.body;
+  body.setAttribute(
+    "data-theme",
+    body.getAttribute("data-theme")==="dark"?"light":"dark"
+  );
+}
 
-    <h2>Trampa #${i}</h2>
+function showCam(i){
+  document.querySelectorAll(".camera")[i].classList.toggle("hidden");
+}
+
+function toggleSettings(i){
+  document.getElementById("settings"+i).classList.toggle("active");
+}
+
+function toggleModule(el){
+  el.classList.toggle("off");
+}
+
+/* ALERTA */
+function triggerAlert(card){
+  if(card.classList.contains("alert")) return;
+
+  card.classList.add("alert");
+  card.querySelector(".module-toggle").classList.add("alert");
+  card.querySelector(".alert-label").textContent="EVENTO DETECTADO";
+
+  document.getElementById("alertSound").play();
+
+  setTimeout(()=>{
+    card.classList.remove("alert");
+    card.querySelector(".module-toggle").classList.remove("alert");
+    card.querySelector(".alert-label").textContent="";
+  },6000);
+}
+
+/* GENERAR TRAMPAS */
+const grid=document.getElementById("grid");
+
+for(let i=0;i<5;i++){
+  const card=document.createElement("div");
+  card.className="card";
+
+  card.innerHTML=`
+    <div class="module-toggle" onclick="toggleModule(this)"></div>
+    <h2>Trampa #${i+1}</h2>
+    <div class="alert-label"></div>
 
     <div class="camera hidden">Imagen / Cámara</div>
 
@@ -183,32 +237,10 @@ for(let i=1;i<=5;i++){
     </div>
 
     <div class="history">Último evento: --/-- --:--</div>
-  </div>
-  `);
-}
-</script>
+  `;
 
-</section>
-
-<script>
-function toggleTheme(){
-  const body=document.body;
-  body.setAttribute(
-    "data-theme",
-    body.getAttribute("data-theme")==="dark"?"light":"dark"
-  );
-}
-
-function showCam(i){
-  document.querySelectorAll(".camera")[i-1].classList.toggle("hidden");
-}
-
-function toggleSettings(i){
-  document.getElementById("settings"+i).classList.toggle("active");
-}
-
-function toggleModule(el){
-  el.classList.toggle("off");
+  card.addEventListener("dblclick",()=>triggerAlert(card)); // simulación
+  grid.appendChild(card);
 }
 </script>
 
