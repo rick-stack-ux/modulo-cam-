@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -79,6 +79,27 @@ header button{position:absolute;right:0}
 }
 
 .module-toggle.off{background:#555}
+
+/* WIFI */
+.wifi{
+  position:absolute;
+  top:12px;
+  left:12px;
+  display:flex;
+  gap:3px;
+}
+
+.wifi span{
+  width:4px;
+  height:8px;
+  background:var(--border);
+  border-radius:2px;
+  opacity:.3;
+}
+
+.wifi.good span:nth-child(-n+3){opacity:1;background:var(--accent)}
+.wifi.medium span:nth-child(-n+2){opacity:1;background:var(--alert)}
+.wifi.bad span:nth-child(1){opacity:1;background:#ef4444}
 
 /* PREVIEW */
 .preview{
@@ -182,16 +203,29 @@ function timeAgo(ms){
   return `Hace ${d} días`;
 }
 
+/* WIFI SIMULADO (luego será RSSI real) */
+function wifiLevel(){
+  const r=Math.random();
+  if(r>0.66) return "good";
+  if(r>0.33) return "medium";
+  return "bad";
+}
+
 /* GENERAR TRAMPAS */
 const grid=document.getElementById("grid");
 
 for(let i=0;i<5;i++){
   const lastEvent=Date.now()-(Math.random()*7200000);
+  const wifi=wifiLevel();
 
   const card=document.createElement("div");
   card.className="card";
 
   card.innerHTML=`
+    <div class="wifi ${wifi}">
+      <span></span><span></span><span></span>
+    </div>
+
     <div class="module-toggle" onclick="toggleModule(this)"></div>
 
     <h2>Trampa #${i+1}</h2>
