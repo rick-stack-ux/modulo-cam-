@@ -6,8 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ================= VARIABLES BASE ================= */
-:root{
+
+/* ============================================================
+   CONFIGURACIÓN DE TEMAS (EDITA SOLO AQUÍ)
+   Temas disponibles:
+   dark | light | blue | green | red | purple | orange
+   cyber | forest | sunset
+   ============================================================ */
+
+/* ==================== DARK (BASE) ==================== */
+body[data-theme="dark"]{
   --bg:#081411;
   --card:#0f1f1a;
   --text:#e6f7f1;
@@ -17,7 +25,7 @@
   --alert:#ffb020;
 }
 
-/* ================= TEMAS ================= */
+/* ==================== LIGHT ==================== */
 body[data-theme="light"]{
   --bg:#f1fff9;
   --card:#ffffff;
@@ -28,6 +36,7 @@ body[data-theme="light"]{
   --alert:#f59e0b;
 }
 
+/* ==================== BLUE ==================== */
 body[data-theme="blue"]{
   --bg:#081a2d;
   --card:#0f2f4a;
@@ -38,6 +47,7 @@ body[data-theme="blue"]{
   --alert:#38bdf8;
 }
 
+/* ==================== GREEN ==================== */
 body[data-theme="green"]{
   --bg:#0f2a1d;
   --card:#143b2a;
@@ -48,6 +58,7 @@ body[data-theme="green"]{
   --alert:#a7f3d0;
 }
 
+/* ==================== RED ==================== */
 body[data-theme="red"]{
   --bg:#2a0f0f;
   --card:#3b1414;
@@ -58,6 +69,7 @@ body[data-theme="red"]{
   --alert:#f87171;
 }
 
+/* ==================== PURPLE ==================== */
 body[data-theme="purple"]{
   --bg:#1b0f2a;
   --card:#2a1440;
@@ -68,6 +80,7 @@ body[data-theme="purple"]{
   --alert:#d8b4fe;
 }
 
+/* ==================== ORANGE ==================== */
 body[data-theme="orange"]{
   --bg:#2a1a0f;
   --card:#402714;
@@ -78,6 +91,7 @@ body[data-theme="orange"]{
   --alert:#fb923c;
 }
 
+/* ==================== CYBER ==================== */
 body[data-theme="cyber"]{
   --bg:#050505;
   --card:#0f0f0f;
@@ -88,6 +102,7 @@ body[data-theme="cyber"]{
   --alert:#f0abfc;
 }
 
+/* ==================== FOREST ==================== */
 body[data-theme="forest"]{
   --bg:#0d1f14;
   --card:#143322;
@@ -98,6 +113,7 @@ body[data-theme="forest"]{
   --alert:#86efac;
 }
 
+/* ==================== SUNSET ==================== */
 body[data-theme="sunset"]{
   --bg:#2b0f1f;
   --card:#3f1830;
@@ -108,7 +124,10 @@ body[data-theme="sunset"]{
   --alert:#fb7185;
 }
 
-/* ================= RESTO DE TU CSS (SIN CAMBIOS) ================= */
+/* ============================================================
+   ESTILOS ORIGINALES (SIN MODIFICAR ESTRUCTURA)
+   ============================================================ */
+
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
@@ -118,6 +137,7 @@ body{
   padding:20px;
 }
 
+/* HEADER */
 header{
   position:relative;
   display:flex;
@@ -126,16 +146,6 @@ header{
   margin-bottom:24px;
 }
 header img.logo{height:110px}
-header select{
-  position:absolute;
-  right:0;
-  background:var(--card);
-  color:var(--text);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:6px;
-  font-size:.75rem;
-}
 
 /* GRID */
 .grid{
@@ -177,7 +187,11 @@ header select{
 .module-toggle.off{background:#555}
 
 /* WIFI */
-.wifi{position:relative;width:18px;height:14px}
+.wifi{
+  position:relative;
+  width:18px;
+  height:14px;
+}
 .wifi span{
   position:absolute;
   bottom:0;
@@ -244,52 +258,26 @@ header select{
 
 /* HISTORIAL */
 .history{font-size:.7rem;color:var(--muted)}
+
 </style>
 </head>
 
+<!-- 👇 AQUÍ SE ELIGE EL TEMA -->
 <body data-theme="dark">
 
 <header>
   <img src="logo.png" class="logo">
-
-  <!-- SELECTOR DE TEMA (MISMO LUGAR DEL BOTÓN) -->
-  <select id="themeSelector">
-    <option value="dark">Dark</option>
-    <option value="light">Light</option>
-    <option value="blue">Blue</option>
-    <option value="green">Green</option>
-    <option value="red">Red</option>
-    <option value="purple">Purple</option>
-    <option value="orange">Orange</option>
-    <option value="cyber">Cyber</option>
-    <option value="forest">Forest</option>
-    <option value="sunset">Sunset</option>
-  </select>
 </header>
 
 <section class="grid" id="grid"></section>
 
 <script>
-/* ================= THEME HANDLER ================= */
-const selector = document.getElementById("themeSelector");
-
-selector.addEventListener("change", ()=>{
-  document.body.setAttribute("data-theme", selector.value);
-  localStorage.setItem("theme", selector.value);
-});
-
-const savedTheme = localStorage.getItem("theme");
-if(savedTheme){
-  document.body.setAttribute("data-theme", savedTheme);
-  selector.value = savedTheme;
-}
-
-/* ================= TU JS ORIGINAL ================= */
 function toggleSettings(i){
   document.getElementById("settings"+i).classList.toggle("active");
 }
-function toggleModule(el){el.classList.toggle("off")}
-
+function toggleModule(el){
+  el.classList.toggle("off");
+}
 function timeAgo(ms){
   const s=Math.floor(ms/1000);
   if(s<60) return "Hace segundos";
@@ -305,7 +293,7 @@ const grid=document.getElementById("grid");
 
 for(let i=0;i<5;i++){
   const lastEvent=Date.now()-(Math.random()*7200000);
-  const wifiLevel = Math.floor(Math.random()*3)+1;
+  const wifiLevel=Math.floor(Math.random()*3)+1;
 
   const card=document.createElement("div");
   card.className="card";
@@ -337,7 +325,9 @@ for(let i=0;i<5;i++){
       <label>Filtro <input type="checkbox"></label>
     </div>
 
-    <div class="history">Último evento: ${timeAgo(Date.now()-lastEvent)}</div>
+    <div class="history">
+      Último evento: ${timeAgo(Date.now()-lastEvent)}
+    </div>
   `;
   grid.appendChild(card);
 }
@@ -345,4 +335,3 @@ for(let i=0;i<5;i++){
 
 </body>
 </html>
-
