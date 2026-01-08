@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ================= VARIABLES BASE ================= */
 :root{
   --bg:#081411;
   --card:#0f1f1a;
@@ -16,6 +17,7 @@
   --alert:#ffb020;
 }
 
+/* ================= TEMAS ================= */
 body[data-theme="light"]{
   --bg:#f1fff9;
   --card:#ffffff;
@@ -26,6 +28,87 @@ body[data-theme="light"]{
   --alert:#f59e0b;
 }
 
+body[data-theme="blue"]{
+  --bg:#081a2d;
+  --card:#0f2f4a;
+  --text:#dceeff;
+  --muted:#8fb9e8;
+  --accent:#1da1f2;
+  --border:#1e3a5f;
+  --alert:#38bdf8;
+}
+
+body[data-theme="green"]{
+  --bg:#0f2a1d;
+  --card:#143b2a;
+  --text:#e6fff2;
+  --muted:#9be7c4;
+  --accent:#2ecc71;
+  --border:#1f4d36;
+  --alert:#a7f3d0;
+}
+
+body[data-theme="red"]{
+  --bg:#2a0f0f;
+  --card:#3b1414;
+  --text:#ffeaea;
+  --muted:#f5b7b1;
+  --accent:#e74c3c;
+  --border:#5c1f1f;
+  --alert:#f87171;
+}
+
+body[data-theme="purple"]{
+  --bg:#1b0f2a;
+  --card:#2a1440;
+  --text:#f3eaff;
+  --muted:#c4b5fd;
+  --accent:#9b59b6;
+  --border:#3b2161;
+  --alert:#d8b4fe;
+}
+
+body[data-theme="orange"]{
+  --bg:#2a1a0f;
+  --card:#402714;
+  --text:#fff1e6;
+  --muted:#fdba74;
+  --accent:#e67e22;
+  --border:#5a361b;
+  --alert:#fb923c;
+}
+
+body[data-theme="cyber"]{
+  --bg:#050505;
+  --card:#0f0f0f;
+  --text:#00ffcc;
+  --muted:#00bfa6;
+  --accent:#ff00ff;
+  --border:#222;
+  --alert:#f0abfc;
+}
+
+body[data-theme="forest"]{
+  --bg:#0d1f14;
+  --card:#143322;
+  --text:#e9fff2;
+  --muted:#7dd3a7;
+  --accent:#27ae60;
+  --border:#1e4d34;
+  --alert:#86efac;
+}
+
+body[data-theme="sunset"]{
+  --bg:#2b0f1f;
+  --card:#3f1830;
+  --text:#ffe9f0;
+  --muted:#fda4af;
+  --accent:#ff7675;
+  --border:#5c223f;
+  --alert:#fb7185;
+}
+
+/* ================= RESTO DE TU CSS (SIN CAMBIOS) ================= */
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
@@ -35,7 +118,6 @@ body{
   padding:20px;
 }
 
-/* HEADER */
 header{
   position:relative;
   display:flex;
@@ -44,7 +126,16 @@ header{
   margin-bottom:24px;
 }
 header img.logo{height:110px}
-header button{position:absolute;right:0}
+header select{
+  position:absolute;
+  right:0;
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:6px;
+  font-size:.75rem;
+}
 
 /* GRID */
 .grid{
@@ -85,13 +176,8 @@ header button{position:absolute;right:0}
 }
 .module-toggle.off{background:#555}
 
-/* WIFI ANTENNA ICON */
-.wifi{
-  position:relative;
-  width:18px;
-  height:14px;
-}
-
+/* WIFI */
+.wifi{position:relative;width:18px;height:14px}
 .wifi span{
   position:absolute;
   bottom:0;
@@ -102,17 +188,9 @@ header button{position:absolute;right:0}
   border-radius:50%;
   opacity:.25;
 }
-
-.wifi span:nth-child(1){
-  width:6px;height:6px;opacity:1;
-}
-.wifi span:nth-child(2){
-  width:12px;height:12px;
-}
-.wifi span:nth-child(3){
-  width:18px;height:18px;
-}
-
+.wifi span:nth-child(1){width:6px;height:6px;opacity:1}
+.wifi span:nth-child(2){width:12px;height:12px}
+.wifi span:nth-child(3){width:18px;height:18px}
 .wifi.level-1 span:nth-child(1){opacity:1}
 .wifi.level-2 span:nth-child(1),
 .wifi.level-2 span:nth-child(2){opacity:1}
@@ -131,16 +209,10 @@ header button{position:absolute;right:0}
   color:#9ca3af;
   gap:6px;
 }
-.preview span{
-  color:var(--muted);
-  font-size:.7rem;
-}
+.preview span{color:var(--muted);font-size:.7rem}
 
 /* CONTROLES */
-.controls{
-  display:flex;
-  gap:8px;
-}
+.controls{display:flex;gap:8px}
 .controls button{
   flex:1;
   font-size:.75rem;
@@ -152,7 +224,7 @@ header button{position:absolute;right:0}
   cursor:pointer;
 }
 
-/* SUBMENU AJUSTES */
+/* SETTINGS */
 .settings{
   display:none;
   background:var(--bg);
@@ -171,10 +243,7 @@ header button{position:absolute;right:0}
 .settings input{width:60%}
 
 /* HISTORIAL */
-.history{
-  font-size:.7rem;
-  color:var(--muted);
-}
+.history{font-size:.7rem;color:var(--muted)}
 </style>
 </head>
 
@@ -182,28 +251,45 @@ header button{position:absolute;right:0}
 
 <header>
   <img src="logo.png" class="logo">
-  <button onclick="toggleTheme()">🌗 Tema</button>
+
+  <!-- SELECTOR DE TEMA (MISMO LUGAR DEL BOTÓN) -->
+  <select id="themeSelector">
+    <option value="dark">Dark</option>
+    <option value="light">Light</option>
+    <option value="blue">Blue</option>
+    <option value="green">Green</option>
+    <option value="red">Red</option>
+    <option value="purple">Purple</option>
+    <option value="orange">Orange</option>
+    <option value="cyber">Cyber</option>
+    <option value="forest">Forest</option>
+    <option value="sunset">Sunset</option>
+  </select>
 </header>
 
 <section class="grid" id="grid"></section>
 
 <script>
-function toggleTheme(){
-  document.body.setAttribute(
-    "data-theme",
-    document.body.getAttribute("data-theme")==="dark"?"light":"dark"
-  );
+/* ================= THEME HANDLER ================= */
+const selector = document.getElementById("themeSelector");
+
+selector.addEventListener("change", ()=>{
+  document.body.setAttribute("data-theme", selector.value);
+  localStorage.setItem("theme", selector.value);
+});
+
+const savedTheme = localStorage.getItem("theme");
+if(savedTheme){
+  document.body.setAttribute("data-theme", savedTheme);
+  selector.value = savedTheme;
 }
 
+/* ================= TU JS ORIGINAL ================= */
 function toggleSettings(i){
   document.getElementById("settings"+i).classList.toggle("active");
 }
+function toggleModule(el){el.classList.toggle("off")}
 
-function toggleModule(el){
-  el.classList.toggle("off");
-}
-
-/* TIEMPO RELATIVO */
 function timeAgo(ms){
   const s=Math.floor(ms/1000);
   if(s<60) return "Hace segundos";
@@ -215,7 +301,6 @@ function timeAgo(ms){
   return `Hace ${d} días`;
 }
 
-/* GENERAR TRAMPAS */
 const grid=document.getElementById("grid");
 
 for(let i=0;i<5;i++){
@@ -254,10 +339,10 @@ for(let i=0;i<5;i++){
 
     <div class="history">Último evento: ${timeAgo(Date.now()-lastEvent)}</div>
   `;
-
   grid.appendChild(card);
 }
 </script>
 
 </body>
 </html>
+
