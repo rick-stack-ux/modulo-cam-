@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ================= IDENTIDAD MONSTER ================= */
 :root{
   --monster:#39FF14;
   --monster-dark:#2ecc0f;
@@ -15,23 +14,16 @@
   --shadow:0 12px 28px rgba(0,0,0,.35);
 }
 
-/* ================= BASE ================= */
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
-  min-height:100vh;
-  font-family:system-ui, sans-serif;
   background:#ffffff;
-  color:var(--text);
+  font-family:system-ui,sans-serif;
   padding:20px;
 }
 
 /* HEADER */
-header{
-  display:flex;
-  justify-content:center;
-  margin-bottom:28px;
-}
+header{display:flex;justify-content:center;margin-bottom:28px}
 header img.logo{height:110px}
 
 /* GRID */
@@ -51,6 +43,11 @@ header img.logo{height:110px}
   flex-direction:column;
   gap:12px;
   box-shadow:var(--shadow);
+  transition:.2s;
+}
+.card.disabled{
+  opacity:.45;
+  filter:grayscale(1);
 }
 
 /* TOP ICONS */
@@ -58,6 +55,22 @@ header img.logo{height:110px}
   position:absolute;
   top:14px;
   right:14px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+/* MODULE TOGGLE */
+.module-toggle{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#ffffff;
+  cursor:pointer;
+  box-shadow:0 0 0 2px rgba(0,0,0,.25);
+}
+.module-toggle.off{
+  background:rgba(255,255,255,.25);
 }
 
 /* WIFI */
@@ -82,10 +95,7 @@ header img.logo{height:110px}
 .wifi.level-3 span{opacity:1}
 
 /* TITULOS */
-h2{
-  color:#fff;
-  font-size:1rem;
-}
+h2{color:#fff;font-size:1rem}
 
 /* PREVIEW */
 .preview{
@@ -98,7 +108,6 @@ h2{
   align-items:center;
   font-size:.75rem;
   gap:6px;
-  text-align:center;
   color:var(--muted);
 }
 
@@ -117,20 +126,10 @@ h2{
   border-radius:12px;
   cursor:pointer;
   font-weight:700;
-  transition:.2s;
 }
 .controls button:disabled{
   background:rgba(255,255,255,.4);
-  color:#555;
   cursor:not-allowed;
-}
-.controls button:last-child{
-  background:rgba(0,0,0,.25);
-  color:#fff;
-}
-.controls button:hover:not(:disabled){
-  transform:translateY(-1px);
-  box-shadow:0 6px 14px rgba(0,0,0,.25);
 }
 
 /* SETTINGS */
@@ -140,20 +139,11 @@ h2{
   border-radius:12px;
   padding:10px;
   font-size:.7rem;
-  gap:6px;
 }
 .settings.active{display:grid}
-.settings label{
-  display:flex;
-  justify-content:space-between;
-  color:var(--muted);
-}
 
 /* HISTORIAL */
-.history{
-  font-size:.7rem;
-  color:var(--muted);
-}
+.history{font-size:.7rem;color:var(--muted)}
 </style>
 </head>
 
@@ -166,65 +156,21 @@ h2{
 <section class="grid" id="grid"></section>
 
 <script>
-/* ============================================================
-   CONFIGURACIÓN
-   ============================================================ */
-const CAMERA_DAILY_LIMIT = 2;
-const CAMERA_LIVE_DURATION = 20000;
 const TOTAL_TRAPS = 3;
 
-/* ============================================================
-   UTILIDADES DE FECHA
-   ============================================================ */
-function today(){
-  return new Date().toISOString().slice(0,10);
+/* ================= PERSISTENCIA ================= */
+function moduleKey(id){
+  return `module_enabled_${id}`;
 }
-function key(trap){
-  return `camera_trap_${trap}_${today()}`;
+function isEnabled(id){
+  const v = localStorage.getItem(moduleKey(id));
+  return v === null ? true : v === "true";
 }
-function getViews(trap){
-  return parseInt(localStorage.getItem(key(trap))) || 0;
-}
-function addView(trap){
-  localStorage.setItem(key(trap), getViews(trap) + 1);
+function setEnabled(id,val){
+  localStorage.setItem(moduleKey(id), val);
 }
 
-/* ============================================================
-   CÁMARA EN VIVO (POR TRAMPA)
-   ============================================================ */
-function openLiveCamera(trap, preview, btn){
-  if(getViews(trap) >= CAMERA_DAILY_LIMIT){
-    btn.disabled = true;
-    btn.textContent = "Bloqueado hoy";
-    return;
-  }
-
-  addView(trap);
-
-  if(getViews(trap) >= CAMERA_DAILY_LIMIT){
-    btn.disabled = true;
-    btn.textContent = "Bloqueado hoy";
-  }
-
-  const original = preview.innerHTML;
-  let s = CAMERA_LIVE_DURATION / 1000;
-
-  preview.innerHTML = `<b>📡 Cámara en vivo</b><span>${s}s</span>`;
-
-  const timer = setInterval(()=>{
-    s--;
-    preview.querySelector("span").textContent = `${s}s`;
-  },1000);
-
-  setTimeout(()=>{
-    clearInterval(timer);
-    preview.innerHTML = original;
-  }, CAMERA_LIVE_DURATION);
-}
-
-/* ============================================================
-   GENERAR TARJETAS
-   ============================================================ */
+/* ================= GENERAR TARJETAS ================= */
 const grid = document.getElementById("grid");
 
 for(let i=1;i<=TOTAL_TRAPS;i++){
@@ -236,6 +182,7 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
       <div class="wifi level-3">
         <span></span><span></span><span></span>
       </div>
+      <div class="module-toggle" id="toggle${i}"></div>
     </div>
 
     <h2>Trampa #${i}</h2>
@@ -246,7 +193,7 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
     </div>
 
     <div class="controls">
-      <button id="camBtn${i}">📷 Cámara</button>
+      <button>📷 Cámara</button>
       <button onclick="toggleSettings(${i})">⚙️ Ajustes</button>
     </div>
 
@@ -261,21 +208,25 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
   grid.appendChild(card);
 
-  const btn = document.getElementById(`camBtn${i}`);
-  const preview = card.querySelector(".preview");
+  const toggle = card.querySelector(`#toggle${i}`);
+  const buttons = card.querySelectorAll("button");
 
-  // Estado inicial (persistente)
-  if(getViews(i) >= CAMERA_DAILY_LIMIT){
-    btn.disabled = true;
-    btn.textContent = "Bloqueado hoy";
+  function applyState(){
+    const enabled = isEnabled(i);
+    toggle.classList.toggle("off", !enabled);
+    card.classList.toggle("disabled", !enabled);
+    buttons.forEach(b=>b.disabled=!enabled);
   }
 
-  btn.onclick = ()=>openLiveCamera(i, preview, btn);
+  toggle.onclick = ()=>{
+    setEnabled(i, !isEnabled(i));
+    applyState();
+  };
+
+  applyState();
 }
 
-/* ============================================================
-   AJUSTES
-   ============================================================ */
+/* ================= AJUSTES ================= */
 function toggleSettings(i){
   document.getElementById("settings"+i).classList.toggle("active");
 }
