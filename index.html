@@ -8,13 +8,13 @@
 <style>
 /* ================= VARIABLES BASE ================= */
 :root{
-  --bg: linear-gradient(135deg,#5bc0eb,#9bcf9b);
-  --card: rgba(255,255,255,0.14);
-  --text: #ffffff;
-  --muted: rgba(255,255,255,0.75);
-  --accent: #ffffff;
-  --border: rgba(255,255,255,0.30);
-  --shadow: 0 20px 40px rgba(0,0,0,.25);
+  --bg:#0b0f14;
+  --card:#141a22;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --accent:#39FF14; /* VERDE MONSTER */
+  --border:#1f2937;
+  --shadow:0 8px 28px rgba(0,0,0,.55);
 }
 
 /* ================= BASE ================= */
@@ -43,10 +43,10 @@ header img.logo{height:110px}
   gap:18px;
 }
 
-/* CARD (GLASS) */
+/* CARD */
 .card{
   position:relative;
-  background:var(--card);
+  background:rgba(20,26,34,0.85);
   border:1px solid var(--border);
   border-radius:18px;
   padding:16px;
@@ -54,8 +54,7 @@ header img.logo{height:110px}
   flex-direction:column;
   gap:12px;
   box-shadow:var(--shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(10px);
 }
 
 /* TOP ICONS */
@@ -65,7 +64,7 @@ header img.logo{height:110px}
   right:12px;
 }
 
-/* WIFI ICON */
+/* WIFI */
 .wifi{
   position:relative;
   width:18px;
@@ -86,10 +85,16 @@ header img.logo{height:110px}
 .wifi span:nth-child(3){width:18px;height:18px}
 .wifi.level-3 span{opacity:1}
 
+/* TITULOS */
+h2{
+  color:var(--accent);
+  font-size:1rem;
+}
+
 /* PREVIEW */
 .preview{
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.20);
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(57,255,20,0.25);
   border-radius:14px;
   height:140px;
   display:flex;
@@ -99,8 +104,6 @@ header img.logo{height:110px}
   font-size:.75rem;
   gap:6px;
   text-align:center;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 /* CONTROLES */
@@ -111,31 +114,33 @@ header img.logo{height:110px}
 .controls button{
   flex:1;
   font-size:.75rem;
-  background:rgba(255,255,255,0.18);
-  border:1px solid rgba(255,255,255,0.35);
-  color:#fff;
+  background:rgba(57,255,20,0.08);
+  border:1px solid rgba(57,255,20,0.35);
+  color:var(--accent);
   padding:8px;
   border-radius:12px;
   cursor:pointer;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  transition:.2s;
+}
+.controls button:hover{
+  box-shadow:0 0 14px rgba(57,255,20,.6);
 }
 
 /* SETTINGS */
 .settings{
   display:none;
-  background:rgba(255,255,255,0.10);
-  border:1px solid rgba(255,255,255,0.25);
+  background:rgba(20,26,34,0.9);
+  border:1px solid var(--border);
   border-radius:12px;
   padding:8px;
   font-size:.7rem;
   gap:6px;
-  backdrop-filter: blur(10px);
 }
 .settings.active{display:grid}
 .settings label{
   display:flex;
   justify-content:space-between;
+  color:var(--muted);
 }
 
 /* HISTORIAL */
@@ -158,36 +163,12 @@ header img.logo{height:110px}
 /* ============================================================
    CONFIGURACIÓN RÁPIDA
    ============================================================ */
-const UI_THEME = 5;              // 👈 CAMBIA 1–10
+const UI_THEME = 11;               // Tema Monster
 const CAMERA_DAILY_LIMIT = 2;
 const CAMERA_LIVE_DURATION = 20000;
 
 /* ============================================================
-   TEMAS GLASS / GRADIENT (1–10)
-   ============================================================ */
-const UI_THEMES = {
-  1:{ bg:"linear-gradient(135deg,#5bc0eb,#9bcf9b)", card:"rgba(255,255,255,0.14)", muted:"rgba(255,255,255,.75)" },
-  2:{ bg:"linear-gradient(135deg,#4facfe,#00f2fe)", card:"rgba(255,255,255,0.15)", muted:"rgba(255,255,255,.70)" },
-  3:{ bg:"linear-gradient(135deg,#84fab0,#8fd3f4)", card:"rgba(255,255,255,0.16)", muted:"rgba(255,255,255,.75)" },
-  4:{ bg:"linear-gradient(135deg,#667eea,#764ba2)", card:"rgba(255,255,255,0.13)", muted:"rgba(255,255,255,.70)" },
-  5:{ bg:"linear-gradient(135deg,#43cea2,#185a9d)", card:"rgba(255,255,255,0.14)", muted:"rgba(255,255,255,.72)" },
-  6:{ bg:"linear-gradient(135deg,#a18cd1,#fbc2eb)", card:"rgba(255,255,255,0.15)", muted:"rgba(255,255,255,.75)" },
-  7:{ bg:"linear-gradient(135deg,#ff9a9e,#fad0c4)", card:"rgba(255,255,255,0.16)", muted:"rgba(255,255,255,.75)" },
-  8:{ bg:"linear-gradient(135deg,#141e30,#243b55)", card:"rgba(255,255,255,0.10)", muted:"rgba(255,255,255,.65)" },
-  9:{ bg:"linear-gradient(135deg,#134e5e,#71b280)", card:"rgba(255,255,255,0.13)", muted:"rgba(255,255,255,.70)" },
- 10:{ bg:"linear-gradient(135deg,#2c3e50,#4ca1af)", card:"rgba(255,255,255,0.12)", muted:"rgba(255,255,255,.70)" }
-};
-
-/* ============================================================
-   APLICAR TEMA
-   ============================================================ */
-const t = UI_THEMES[UI_THEME];
-document.body.style.background = t.bg;
-document.documentElement.style.setProperty("--card", t.card);
-document.documentElement.style.setProperty("--muted", t.muted);
-
-/* ============================================================
-   CÁMARA EN VIVO (SIMULADA)
+   CONTROL DE CÁMARA (SIMULADO)
    ============================================================ */
 function todayKey(){
   return "views_" + new Date().toISOString().slice(0,10);
@@ -201,7 +182,7 @@ function addView(){
 
 function openLiveCamera(preview){
   if(getViews() >= CAMERA_DAILY_LIMIT){
-    alert("Límite diario de cámara alcanzado");
+    alert("Límite diario de cámara en vivo alcanzado");
     return;
   }
   addView();
@@ -255,6 +236,7 @@ for(let i=0;i<3;i++){
     <div class="settings" id="settings${i}">
       <label>Zoom <input type="range"></label>
       <label>Brillo <input type="range"></label>
+      <label>Contraste <input type="range"></label>
     </div>
 
     <div class="history">Último evento: Hace minutos</div>
