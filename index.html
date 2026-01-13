@@ -15,6 +15,7 @@
   --accent:#0f0;
   --border:#333;
   --alert:#ff0;
+  --shadow:none;
 }
 
 /* ================= ESTILOS BASE ================= */
@@ -52,6 +53,7 @@ header img.logo{height:110px}
   display:flex;
   flex-direction:column;
   gap:12px;
+  box-shadow:var(--shadow);
 }
 
 /* TOP ICONS */
@@ -144,24 +146,61 @@ header img.logo{height:110px}
 /* ============================================================
    CONFIGURACIÓN RÁPIDA (EDITA SOLO ESTO)
    ============================================================ */
-const UI_THEME = 9;          // 👈 TEMA 1 a 10
+const UI_THEME = 11;         // 👈 PRUEBA 11,12,13,14
 const CAMERA_DAILY_LIMIT = 2;
 const CAMERA_LIVE_DURATION = 20000;
 
 /* ============================================================
-   TEMAS PREDEFINIDOS (NO TOCAR)
+   TEMAS PREDEFINIDOS (1–14)
    ============================================================ */
 const UI_THEMES = {
-  1:{ bg:"#081411", card:"#0f1f1a", text:"#e6f7f1", muted:"#7fbfa6", accent:"#39ff9c", border:"#1f3d32", alert:"#ffb020" },
-  2:{ bg:"#f1fff9", card:"#ffffff", text:"#0b1a14", muted:"#3a7a63", accent:"#22c55e", border:"#a7f3d0", alert:"#f59e0b" },
-  3:{ bg:"#0d1f14", card:"#143322", text:"#e9fff2", muted:"#7dd3a7", accent:"#27ae60", border:"#1e4d34", alert:"#86efac" },
-  4:{ bg:"#121212", card:"#1e1e1e", text:"#e5e5e5", muted:"#a3a3a3", accent:"#9ca3af", border:"#2a2a2a", alert:"#facc15" },
-  5:{ bg:"#081a2d", card:"#0f2f4a", text:"#dceeff", muted:"#8fb9e8", accent:"#1da1f2", border:"#1e3a5f", alert:"#38bdf8" },
-  6:{ bg:"#050505", card:"#0f0f0f", text:"#00ffcc", muted:"#00bfa6", accent:"#ff00ff", border:"#222", alert:"#f0abfc" },
-  7:{ bg:"#2a1a0f", card:"#402714", text:"#fff1e6", muted:"#fdba74", accent:"#e67e22", border:"#5a361b", alert:"#fb923c" },
-  8:{ bg:"#1b0f2a", card:"#2a1440", text:"#f3eaff", muted:"#c4b5fd", accent:"#9b59b6", border:"#3b2161", alert:"#d8b4fe" },
-  9:{ bg:"#2b0f1f", card:"#3f1830", text:"#ffe9f0", muted:"#fda4af", accent:"#ff7675", border:"#5c223f", alert:"#fb7185" },
- 10:{ bg:"#000000", card:"#111111", text:"#ffffff", muted:"#cccccc", accent:"#00ff00", border:"#333333", alert:"#ff0000" }
+  1:{ bg:"#081411", card:"#0f1f1a", text:"#e6f7f1", muted:"#7fbfa6", accent:"#39ff9c", border:"#1f3d32", alert:"#ffb020", shadow:"none" },
+
+  /* ===== NUEVOS CORPORATIVOS ===== */
+
+  11:{ // Corporate Dark
+    bg:"#0b0f14",
+    card:"#141a22",
+    text:"#e5e7eb",
+    muted:"#9ca3af",
+    accent:"#3b82f6",
+    border:"#1f2937",
+    alert:"#f59e0b",
+    shadow:"0 8px 24px rgba(0,0,0,.45)"
+  },
+
+  12:{ // Industrial IoT
+    bg:"#0e1513",
+    card:"#182320",
+    text:"#e6f7f1",
+    muted:"#9fbfb0",
+    accent:"#22c55e",
+    border:"#263f36",
+    alert:"#facc15",
+    shadow:"0 6px 18px rgba(0,0,0,.5)"
+  },
+
+  13:{ // Premium Tech
+    bg:"#0a0a0f",
+    card:"#141421",
+    text:"#f1f1f9",
+    muted:"#b4b4d6",
+    accent:"#8b5cf6",
+    border:"#23233a",
+    alert:"#f472b6",
+    shadow:"0 10px 30px rgba(0,0,0,.55)"
+  },
+
+  14:{ // High Contrast Control
+    bg:"#000000",
+    card:"#0f0f0f",
+    text:"#ffffff",
+    muted:"#bfbfbf",
+    accent:"#00ff88",
+    border:"#1f1f1f",
+    alert:"#ff3b3b",
+    shadow:"none"
+  }
 };
 
 /* ============================================================
@@ -176,6 +215,7 @@ r.style.setProperty("--muted", t.muted);
 r.style.setProperty("--accent", t.accent);
 r.style.setProperty("--border", t.border);
 r.style.setProperty("--alert", t.alert);
+r.style.setProperty("--shadow", t.shadow || "none");
 
 /* ============================================================
    CÁMARA EN VIVO (SIMULADA)
