@@ -6,15 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* ================= VARIABLES BASE ================= */
+/* ================= IDENTIDAD VISUAL ================= */
 :root{
-  --bg:#0b0f14;
-  --card:#141a22;
-  --text:#e5e7eb;
-  --muted:#9ca3af;
+  --bg:#ffffff;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#6b7280;
   --accent:#39FF14; /* VERDE MONSTER */
-  --border:#1f2937;
-  --shadow:0 8px 28px rgba(0,0,0,.55);
+  --border:#e5e7eb;
+  --shadow:0 10px 30px rgba(0,0,0,.12);
 }
 
 /* ================= BASE ================= */
@@ -32,7 +32,7 @@ body{
 header{
   display:flex;
   justify-content:center;
-  margin-bottom:24px;
+  margin-bottom:28px;
 }
 header img.logo{height:110px}
 
@@ -40,28 +40,27 @@ header img.logo{height:110px}
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:18px;
+  gap:20px;
 }
 
 /* CARD */
 .card{
   position:relative;
-  background:rgba(20,26,34,0.85);
+  background:var(--card);
   border:1px solid var(--border);
   border-radius:18px;
-  padding:16px;
+  padding:18px;
   display:flex;
   flex-direction:column;
   gap:12px;
   box-shadow:var(--shadow);
-  backdrop-filter: blur(10px);
 }
 
 /* TOP ICONS */
 .top-icons{
   position:absolute;
-  top:12px;
-  right:12px;
+  top:14px;
+  right:14px;
 }
 
 /* WIFI */
@@ -93,8 +92,8 @@ h2{
 
 /* PREVIEW */
 .preview{
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(57,255,20,0.25);
+  background:#f9fafb;
+  border:1px dashed var(--border);
   border-radius:14px;
   height:140px;
   display:flex;
@@ -104,35 +103,42 @@ h2{
   font-size:.75rem;
   gap:6px;
   text-align:center;
+  color:var(--muted);
 }
 
 /* CONTROLES */
 .controls{
   display:flex;
-  gap:8px;
+  gap:10px;
 }
 .controls button{
   flex:1;
-  font-size:.75rem;
-  background:rgba(57,255,20,0.08);
-  border:1px solid rgba(57,255,20,0.35);
-  color:var(--accent);
-  padding:8px;
+  font-size:.8rem;
+  background:var(--accent);
+  border:none;
+  color:#000;
+  padding:10px;
   border-radius:12px;
   cursor:pointer;
+  font-weight:600;
   transition:.2s;
 }
+.controls button:last-child{
+  background:#f3f4f6;
+  color:#111827;
+}
 .controls button:hover{
-  box-shadow:0 0 14px rgba(57,255,20,.6);
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(0,0,0,.15);
 }
 
 /* SETTINGS */
 .settings{
   display:none;
-  background:rgba(20,26,34,0.9);
+  background:#f9fafb;
   border:1px solid var(--border);
   border-radius:12px;
-  padding:8px;
+  padding:10px;
   font-size:.7rem;
   gap:6px;
 }
@@ -161,15 +167,11 @@ h2{
 
 <script>
 /* ============================================================
-   CONFIGURACIÓN RÁPIDA
+   CONFIGURACIÓN CÁMARA (SIMULADO)
    ============================================================ */
-const UI_THEME = 11;               // Tema Monster
 const CAMERA_DAILY_LIMIT = 2;
 const CAMERA_LIVE_DURATION = 20000;
 
-/* ============================================================
-   CONTROL DE CÁMARA (SIMULADO)
-   ============================================================ */
 function todayKey(){
   return "views_" + new Date().toISOString().slice(0,10);
 }
@@ -190,7 +192,7 @@ function openLiveCamera(preview){
   const original = preview.innerHTML;
   let s = CAMERA_LIVE_DURATION / 1000;
 
-  preview.innerHTML = `<b>📡 Cámara en vivo</b><span>${s}s</span>`;
+  preview.innerHTML = `<b style="color:#111">📡 Cámara en vivo</b><span>${s}s</span>`;
 
   const i = setInterval(()=>{
     s--;
