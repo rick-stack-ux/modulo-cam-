@@ -156,18 +156,60 @@ h2{color:#fff;font-size:1rem}
 <section class="grid" id="grid"></section>
 
 <script>
+/* ================= CONFIGURACIÓN ================= */
 const TOTAL_TRAPS = 3;
+const CAMERA_LIVE_DURATION = 20000;
+const CAMERA_DAILY_LIMIT = 2;
 
-/* ================= PERSISTENCIA ================= */
-function moduleKey(id){
-  return `module_enabled_${id}`;
+/* ================= FECHA ================= */
+function today(){
+  return new Date().toISOString().slice(0,10);
 }
+
+/* ================= CLAVES ================= */
+function moduleKey(id){ return `module_enabled_${id}`; }
+function cameraKey(id){ return `camera_views_${id}_${today()}`; }
+
+/* ================= ESTADOS ================= */
 function isEnabled(id){
   const v = localStorage.getItem(moduleKey(id));
   return v === null ? true : v === "true";
 }
 function setEnabled(id,val){
   localStorage.setItem(moduleKey(id), val);
+}
+function getViews(id){
+  return parseInt(localStorage.getItem(cameraKey(id))) || 0;
+}
+function addView(id){
+  localStorage.setItem(cameraKey(id), getViews(id)+1);
+}
+
+/* ================= CÁMARA EN VIVO ================= */
+function openLiveCamera(id, preview){
+  if(!isEnabled(id)) return;
+
+  if(getViews(id) >= CAMERA_DAILY_LIMIT){
+    alert("Límite diario de cámara alcanzado");
+    return;
+  }
+
+  addView(id);
+
+  const original = preview.innerHTML;
+  let s = CAMERA_LIVE_DURATION / 1000;
+
+  preview.innerHTML = `<b>📡 Cámara en vivo</b><span>${s}s</span>`;
+
+  const t = setInterval(()=>{
+    s--;
+    preview.querySelector("span").textContent = `${s}s`;
+  },1000);
+
+  setTimeout(()=>{
+    clearInterval(t);
+    preview.innerHTML = original;
+  }, CAMERA_LIVE_DURATION);
 }
 
 /* ================= GENERAR TARJETAS ================= */
@@ -193,8 +235,8 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
     </div>
 
     <div class="controls">
-      <button>📷 Cámara</button>
-      <button onclick="toggleSettings(${i})">⚙️ Ajustes</button>
+      <button id="cam${i}">📷 Cámara</button>
+      <button id="set${i}">⚙️ Ajustes</button>
     </div>
 
     <div class="settings" id="settings${i}">
@@ -209,13 +251,16 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   grid.appendChild(card);
 
   const toggle = card.querySelector(`#toggle${i}`);
-  const buttons = card.querySelectorAll("button");
+  const camBtn = card.querySelector(`#cam${i}`);
+  const setBtn = card.querySelector(`#set${i}`);
+  const preview = card.querySelector(".preview");
 
   function applyState(){
-    const enabled = isEnabled(i);
-    toggle.classList.toggle("off", !enabled);
-    card.classList.toggle("disabled", !enabled);
-    buttons.forEach(b=>b.disabled=!enabled);
+    const en = isEnabled(i);
+    toggle.classList.toggle("off", !en);
+    card.classList.toggle("disabled", !en);
+    camBtn.disabled = !en;
+    setBtn.disabled = !en;
   }
 
   toggle.onclick = ()=>{
@@ -223,12 +268,10 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
     applyState();
   };
 
-  applyState();
-}
+  camBtn.onclick = ()=>openLiveCamera(i, preview);
+  setBtn.onclick = ()=>document.getElementById("settings"+i).classList.toggle("active");
 
-/* ================= AJUSTES ================= */
-function toggleSettings(i){
-  document.getElementById("settings"+i).classList.toggle("active");
+  applyState();
 }
 </script>
 
