@@ -6,15 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
 /* ============================================================
-   CONFIGURACIÓN DE TEMAS (EDITA SOLO AQUÍ)
-   Temas disponibles:
-   dark | light | blue | green | red | purple | orange
-   cyber | forest | sunset
+   TEMA (puedes cambiar data-theme en <body>)
    ============================================================ */
-
-/* ==================== DARK (BASE) ==================== */
 body[data-theme="dark"]{
   --bg:#081411;
   --card:#0f1f1a;
@@ -24,109 +18,6 @@ body[data-theme="dark"]{
   --border:#1f3d32;
   --alert:#ffb020;
 }
-
-/* ==================== LIGHT ==================== */
-body[data-theme="light"]{
-  --bg:#f1fff9;
-  --card:#ffffff;
-  --text:#0b1a14;
-  --muted:#3a7a63;
-  --accent:#22c55e;
-  --border:#a7f3d0;
-  --alert:#f59e0b;
-}
-
-/* ==================== BLUE ==================== */
-body[data-theme="blue"]{
-  --bg:#081a2d;
-  --card:#0f2f4a;
-  --text:#dceeff;
-  --muted:#8fb9e8;
-  --accent:#1da1f2;
-  --border:#1e3a5f;
-  --alert:#38bdf8;
-}
-
-/* ==================== GREEN ==================== */
-body[data-theme="green"]{
-  --bg:#0f2a1d;
-  --card:#143b2a;
-  --text:#e6fff2;
-  --muted:#9be7c4;
-  --accent:#2ecc71;
-  --border:#1f4d36;
-  --alert:#a7f3d0;
-}
-
-/* ==================== RED ==================== */
-body[data-theme="red"]{
-  --bg:#2a0f0f;
-  --card:#3b1414;
-  --text:#ffeaea;
-  --muted:#f5b7b1;
-  --accent:#e74c3c;
-  --border:#5c1f1f;
-  --alert:#f87171;
-}
-
-/* ==================== PURPLE ==================== */
-body[data-theme="purple"]{
-  --bg:#1b0f2a;
-  --card:#2a1440;
-  --text:#f3eaff;
-  --muted:#c4b5fd;
-  --accent:#9b59b6;
-  --border:#3b2161;
-  --alert:#d8b4fe;
-}
-
-/* ==================== ORANGE ==================== */
-body[data-theme="orange"]{
-  --bg:#2a1a0f;
-  --card:#402714;
-  --text:#fff1e6;
-  --muted:#fdba74;
-  --accent:#e67e22;
-  --border:#5a361b;
-  --alert:#fb923c;
-}
-
-/* ==================== CYBER ==================== */
-body[data-theme="cyber"]{
-  --bg:#050505;
-  --card:#0f0f0f;
-  --text:#00ffcc;
-  --muted:#00bfa6;
-  --accent:#ff00ff;
-  --border:#222;
-  --alert:#f0abfc;
-}
-
-/* ==================== FOREST ==================== */
-body[data-theme="forest"]{
-  --bg:#0d1f14;
-  --card:#143322;
-  --text:#e9fff2;
-  --muted:#7dd3a7;
-  --accent:#27ae60;
-  --border:#1e4d34;
-  --alert:#86efac;
-}
-
-/* ==================== SUNSET ==================== */
-body[data-theme="sunset"]{
-  --bg:#2b0f1f;
-  --card:#3f1830;
-  --text:#ffe9f0;
-  --muted:#fda4af;
-  --accent:#ff7675;
-  --border:#5c223f;
-  --alert:#fb7185;
-}
-
-/* ============================================================
-   ESTILOS ORIGINALES (SIN MODIFICAR ESTRUCTURA)
-   ============================================================ */
 
 *{box-sizing:border-box;margin:0;padding:0}
 
@@ -139,10 +30,8 @@ body{
 
 /* HEADER */
 header{
-  position:relative;
   display:flex;
   justify-content:center;
-  align-items:center;
   margin-bottom:24px;
 }
 header img.logo{height:110px}
@@ -173,18 +62,7 @@ header img.logo{height:110px}
   right:12px;
   display:flex;
   gap:10px;
-  align-items:center;
 }
-
-/* MINI SWITCH */
-.module-toggle{
-  width:12px;
-  height:12px;
-  border-radius:50%;
-  background:var(--accent);
-  cursor:pointer;
-}
-.module-toggle.off{background:#555}
 
 /* WIFI */
 .wifi{
@@ -205,28 +83,33 @@ header img.logo{height:110px}
 .wifi span:nth-child(1){width:6px;height:6px;opacity:1}
 .wifi span:nth-child(2){width:12px;height:12px}
 .wifi span:nth-child(3){width:18px;height:18px}
-.wifi.level-1 span:nth-child(1){opacity:1}
-.wifi.level-2 span:nth-child(1),
-.wifi.level-2 span:nth-child(2){opacity:1}
 .wifi.level-3 span{opacity:1}
 
-/* PREVIEW */
+/* PREVIEW (ÚLTIMA CAPTURA / VIDEO) */
 .preview{
   background:#020c09;
   border-radius:12px;
-  height:120px;
+  height:140px;
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
   font-size:.75rem;
-  color:#9ca3af;
   gap:6px;
+  text-align:center;
 }
-.preview span{color:var(--muted);font-size:.7rem}
+.preview .title{
+  font-weight:600;
+}
+.preview .status{
+  color:var(--muted);
+}
 
 /* CONTROLES */
-.controls{display:flex;gap:8px}
+.controls{
+  display:flex;
+  gap:8px;
+}
 .controls button{
   flex:1;
   font-size:.75rem;
@@ -257,12 +140,13 @@ header img.logo{height:110px}
 .settings input{width:60%}
 
 /* HISTORIAL */
-.history{font-size:.7rem;color:var(--muted)}
-
+.history{
+  font-size:.7rem;
+  color:var(--muted);
+}
 </style>
 </head>
 
-<!-- 👇 AQUÍ SE ELIGE EL TEMA -->
 <body data-theme="dark">
 
 <header>
@@ -272,49 +156,86 @@ header img.logo{height:110px}
 <section class="grid" id="grid"></section>
 
 <script>
-function toggleSettings(i){
-  document.getElementById("settings"+i).classList.toggle("active");
-}
-function toggleModule(el){
-  el.classList.toggle("off");
-}
-function timeAgo(ms){
-  const s=Math.floor(ms/1000);
-  if(s<60) return "Hace segundos";
-  const m=Math.floor(s/60);
-  if(m<60) return `Hace ${m} min`;
-  const h=Math.floor(m/60);
-  if(h<24) return `Hace ${h} h`;
-  const d=Math.floor(h/24);
-  return `Hace ${d} días`;
+/* ============================================================
+   CONFIGURACIÓN CÁMARA EN VIVO (EDITA SOLO AQUÍ)
+   ============================================================ */
+const CAMERA_DAILY_LIMIT = 2;        // veces por día
+const CAMERA_LIVE_DURATION = 20000;  // ms (20 s)
+
+/* ============================================================
+   CONTROL DE USO DIARIO
+   ============================================================ */
+function todayKey(){
+  const d = new Date().toISOString().slice(0,10);
+  return "camera_views_" + d;
 }
 
-const grid=document.getElementById("grid");
+function getViews(){
+  return parseInt(localStorage.getItem(todayKey())) || 0;
+}
 
-for(let i=0;i<5;i++){
-  const lastEvent=Date.now()-(Math.random()*7200000);
-  const wifiLevel=Math.floor(Math.random()*3)+1;
+function addView(){
+  localStorage.setItem(todayKey(), getViews()+1);
+}
 
-  const card=document.createElement("div");
-  card.className="card";
+/* ============================================================
+   CÁMARA EN VIVO (SIMULADA)
+   ============================================================ */
+function openLiveCamera(preview){
+  if(getViews() >= CAMERA_DAILY_LIMIT){
+    alert("Límite diario de cámara en vivo alcanzado.");
+    return;
+  }
 
-  card.innerHTML=`
+  addView();
+
+  const original = preview.innerHTML;
+  let seconds = CAMERA_LIVE_DURATION / 1000;
+
+  preview.innerHTML = `
+    <div class="title">📡 Cámara en vivo</div>
+    <div class="status">Transmitiendo… (${seconds}s)</div>
+  `;
+
+  const countdown = setInterval(()=>{
+    seconds--;
+    const status = preview.querySelector(".status");
+    if(status) status.textContent = `Transmitiendo… (${seconds}s)`;
+  },1000);
+
+  setTimeout(()=>{
+    clearInterval(countdown);
+    preview.innerHTML = original;
+  }, CAMERA_LIVE_DURATION);
+}
+
+/* ============================================================
+   GENERAR TRAMPAS
+   ============================================================ */
+const grid = document.getElementById("grid");
+
+for(let i=0;i<3;i++){
+  const card = document.createElement("div");
+  card.className = "card";
+
+  card.innerHTML = `
     <div class="top-icons">
-      <div class="wifi level-${wifiLevel}">
+      <div class="wifi level-3">
         <span></span><span></span><span></span>
       </div>
-      <div class="module-toggle" onclick="toggleModule(this)"></div>
     </div>
 
     <h2>Trampa #${i+1}</h2>
 
     <div class="preview">
-      Última captura
-      <span>Sin imagen</span>
+      <div class="title">Última captura</div>
+      <div class="status">Sin imagen</div>
     </div>
 
     <div class="controls">
-      <button>📷 Cámara</button>
+      <button onclick="openLiveCamera(this.closest('.card').querySelector('.preview'))">
+        📷 Cámara
+      </button>
       <button onclick="toggleSettings(${i})">⚙️ Ajustes</button>
     </div>
 
@@ -322,16 +243,19 @@ for(let i=0;i<5;i++){
       <label>Zoom <input type="range"></label>
       <label>Brillo <input type="range"></label>
       <label>Contraste <input type="range"></label>
-      <label>Filtro <input type="checkbox"></label>
     </div>
 
-    <div class="history">
-      Último evento: ${timeAgo(Date.now()-lastEvent)}
-    </div>
+    <div class="history">Último evento: Hace minutos</div>
   `;
+
   grid.appendChild(card);
+}
+
+function toggleSettings(i){
+  document.getElementById("settings"+i).classList.toggle("active");
 }
 </script>
 
 </body>
 </html>
+
