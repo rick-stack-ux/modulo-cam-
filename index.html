@@ -21,7 +21,7 @@
 body{
   min-height:100vh;
   font-family:system-ui, sans-serif;
-  background:#ffffff; /* 👈 ÚNICO CAMBIO: FONDO BLANCO */
+  background:#ffffff;
   color:var(--text);
   padding:20px;
 }
@@ -85,7 +85,6 @@ header img.logo{height:110px}
 h2{
   color:#fff;
   font-size:1rem;
-  letter-spacing:.5px;
 }
 
 /* PREVIEW */
@@ -120,11 +119,16 @@ h2{
   font-weight:700;
   transition:.2s;
 }
+.controls button:disabled{
+  background:rgba(255,255,255,.4);
+  color:#555;
+  cursor:not-allowed;
+}
 .controls button:last-child{
   background:rgba(0,0,0,.25);
   color:#fff;
 }
-.controls button:hover{
+.controls button:hover:not(:disabled){
   transform:translateY(-1px);
   box-shadow:0 6px 14px rgba(0,0,0,.25);
 }
@@ -144,7 +148,6 @@ h2{
   justify-content:space-between;
   color:var(--muted);
 }
-.settings input{accent-color:#fff}
 
 /* HISTORIAL */
 .history{
@@ -164,40 +167,57 @@ h2{
 
 <script>
 /* ============================================================
-   CONFIGURACIÓN CÁMARA (SIMULADO)
+   CONFIGURACIÓN
    ============================================================ */
 const CAMERA_DAILY_LIMIT = 2;
 const CAMERA_LIVE_DURATION = 20000;
+const TOTAL_TRAPS = 3;
 
-function todayKey(){
-  return "views_" + new Date().toISOString().slice(0,10);
+/* ============================================================
+   UTILIDADES DE FECHA
+   ============================================================ */
+function today(){
+  return new Date().toISOString().slice(0,10);
 }
-function getViews(){
-  return parseInt(localStorage.getItem(todayKey())) || 0;
+function key(trap){
+  return `camera_trap_${trap}_${today()}`;
 }
-function addView(){
-  localStorage.setItem(todayKey(), getViews()+1);
+function getViews(trap){
+  return parseInt(localStorage.getItem(key(trap))) || 0;
+}
+function addView(trap){
+  localStorage.setItem(key(trap), getViews(trap) + 1);
 }
 
-function openLiveCamera(preview){
-  if(getViews() >= CAMERA_DAILY_LIMIT){
-    alert("Límite diario de cámara alcanzado");
+/* ============================================================
+   CÁMARA EN VIVO (POR TRAMPA)
+   ============================================================ */
+function openLiveCamera(trap, preview, btn){
+  if(getViews(trap) >= CAMERA_DAILY_LIMIT){
+    btn.disabled = true;
+    btn.textContent = "Bloqueado hoy";
     return;
   }
-  addView();
+
+  addView(trap);
+
+  if(getViews(trap) >= CAMERA_DAILY_LIMIT){
+    btn.disabled = true;
+    btn.textContent = "Bloqueado hoy";
+  }
 
   const original = preview.innerHTML;
   let s = CAMERA_LIVE_DURATION / 1000;
 
-  preview.innerHTML = `<b style="color:#fff">📡 Cámara en vivo</b><span>${s}s</span>`;
+  preview.innerHTML = `<b>📡 Cámara en vivo</b><span>${s}s</span>`;
 
-  const i = setInterval(()=>{
+  const timer = setInterval(()=>{
     s--;
     preview.querySelector("span").textContent = `${s}s`;
   },1000);
 
   setTimeout(()=>{
-    clearInterval(i);
+    clearInterval(timer);
     preview.innerHTML = original;
   }, CAMERA_LIVE_DURATION);
 }
@@ -207,7 +227,7 @@ function openLiveCamera(preview){
    ============================================================ */
 const grid = document.getElementById("grid");
 
-for(let i=0;i<3;i++){
+for(let i=1;i<=TOTAL_TRAPS;i++){
   const card = document.createElement("div");
   card.className="card";
 
@@ -218,7 +238,7 @@ for(let i=0;i<3;i++){
       </div>
     </div>
 
-    <h2>Trampa #${i+1}</h2>
+    <h2>Trampa #${i}</h2>
 
     <div class="preview">
       <b>Última captura</b>
@@ -226,9 +246,7 @@ for(let i=0;i<3;i++){
     </div>
 
     <div class="controls">
-      <button onclick="openLiveCamera(this.closest('.card').querySelector('.preview'))">
-        📷 Cámara
-      </button>
+      <button id="camBtn${i}">📷 Cámara</button>
       <button onclick="toggleSettings(${i})">⚙️ Ajustes</button>
     </div>
 
@@ -240,9 +258,24 @@ for(let i=0;i<3;i++){
 
     <div class="history">Último evento: Hace minutos</div>
   `;
+
   grid.appendChild(card);
+
+  const btn = document.getElementById(`camBtn${i}`);
+  const preview = card.querySelector(".preview");
+
+  // Estado inicial (persistente)
+  if(getViews(i) >= CAMERA_DAILY_LIMIT){
+    btn.disabled = true;
+    btn.textContent = "Bloqueado hoy";
+  }
+
+  btn.onclick = ()=>openLiveCamera(i, preview, btn);
 }
 
+/* ============================================================
+   AJUSTES
+   ============================================================ */
 function toggleSettings(i){
   document.getElementById("settings"+i).classList.toggle("active");
 }
