@@ -164,10 +164,10 @@ const CAMERA_DAILY_LIMIT = 2;
 /* ===== FIREBASE REST ===== */
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 
-/* ===== ESP32-CAM STREAM ===== */
-const CAM_STREAM_URL = "http://192.168.1.90:81/stream"; 
-// ⚠️ CAMBIA SOLO ESTA IP SI ES NECESARIO
+/* ===== ESP32-CAM STREAM (IP CORRECTA) ===== */
+const CAM_STREAM_URL = "http://10.38.40.178:81/stream";
 
+/* ===== ENVÍO DE COMANDO ===== */
 function sendStreamREST(id){
   fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
     method: "PUT",
@@ -301,3 +301,4 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
 </body>
 </html>
+
