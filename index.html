@@ -43,11 +43,6 @@ header img.logo{height:110px}
   flex-direction:column;
   gap:12px;
   box-shadow:var(--shadow);
-  transition:.2s;
-}
-.card.disabled{
-  opacity:.45;
-  filter:grayscale(1);
 }
 
 /* TOP ICONS */
@@ -58,19 +53,6 @@ header img.logo{height:110px}
   display:flex;
   gap:8px;
   align-items:center;
-}
-
-/* MODULE TOGGLE */
-.module-toggle{
-  width:14px;
-  height:14px;
-  border-radius:50%;
-  background:#ffffff;
-  cursor:pointer;
-  box-shadow:0 0 0 2px rgba(0,0,0,.25);
-}
-.module-toggle.off{
-  background:rgba(255,255,255,.25);
 }
 
 /* WIFI */
@@ -101,7 +83,7 @@ h2{color:#fff;font-size:1rem}
 .preview{
   background:rgba(0,0,0,.15);
   border-radius:14px;
-  height:140px;
+  height:180px;
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -109,6 +91,7 @@ h2{color:#fff;font-size:1rem}
   font-size:.75rem;
   gap:6px;
   color:var(--muted);
+  overflow:hidden;
 }
 
 /* CONTROLES */
@@ -127,10 +110,6 @@ h2{color:#fff;font-size:1rem}
   cursor:pointer;
   font-weight:700;
 }
-.controls button:disabled{
-  background:rgba(255,255,255,.4);
-  cursor:not-allowed;
-}
 
 /* SETTINGS */
 .settings{
@@ -139,8 +118,16 @@ h2{color:#fff;font-size:1rem}
   border-radius:12px;
   padding:10px;
   font-size:.7rem;
+  gap:6px;
 }
 .settings.active{display:grid}
+
+.settings label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  color:#fff;
+}
 
 /* HISTORIAL */
 .history{font-size:.7rem;color:var(--muted)}
@@ -159,78 +146,12 @@ h2{color:#fff;font-size:1rem}
 /* ================= CONFIGURACIÓN ================= */
 const TOTAL_TRAPS = 3;
 const CAMERA_LIVE_DURATION = 20000;
-const CAMERA_DAILY_LIMIT = 2;
 
-/* ===== FIREBASE REST ===== */
-const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
-
-/* ===== ESP32-CAM STREAM (IP CORRECTA) ===== */
-const CAM_STREAM_URL = "http://10.38.40.178:81/stream";
-
-/* ===== ENVÍO DE COMANDO ===== */
-function sendStreamREST(id){
-  fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify("STREAM")
-  });
-}
-
-/* ================= FECHA ================= */
-function today(){
-  return new Date().toISOString().slice(0,10);
-}
-
-/* ================= CLAVES ================= */
-function moduleKey(id){ return `module_enabled_${id}`; }
-function cameraKey(id){ return `camera_views_${id}_${today()}`; }
-
-/* ================= ESTADOS ================= */
-function isEnabled(id){
-  const v = localStorage.getItem(moduleKey(id));
-  return v === null ? true : v === "true";
-}
-function setEnabled(id,val){
-  localStorage.setItem(moduleKey(id), val);
-}
-function getViews(id){
-  return parseInt(localStorage.getItem(cameraKey(id))) || 0;
-}
-function addView(id){
-  localStorage.setItem(cameraKey(id), getViews(id)+1);
-}
-
-/* ================= CÁMARA EN VIVO ================= */
-function openLiveCamera(id, preview){
-  if(!isEnabled(id)) return;
-
-  if(getViews(id) >= CAMERA_DAILY_LIMIT){
-    alert("Límite diario de cámara alcanzado");
-    return;
-  }
-
-  addView(id);
-
-  const original = preview.innerHTML;
-  let s = CAMERA_LIVE_DURATION / 1000;
-
-  preview.innerHTML = `
-    <b>📡 Cámara en vivo</b>
-    <img src="${CAM_STREAM_URL}"
-         style="width:100%;border-radius:10px;margin-top:6px">
-    <span>${s}s</span>
-  `;
-
-  const t = setInterval(()=>{
-    s--;
-    preview.querySelector("span").textContent = `${s}s`;
-  },1000);
-
-  setTimeout(()=>{
-    clearInterval(t);
-    preview.innerHTML = original;
-  }, CAMERA_LIVE_DURATION);
-}
+/* ================= ESP32-CAM ================= */
+/* ⚠️ CAMBIA SOLO ESTA IP SI ES NECESARIO */
+const CAM_IP = "10.38.40.178";
+const STREAM_URL  = `http://${CAM_IP}:81/stream`;
+const CAPTURE_URL = `http://${CAM_IP}:81/capture.jpg`;
 
 /* ================= GENERAR TARJETAS ================= */
 const grid = document.getElementById("grid");
@@ -244,25 +165,32 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
       <div class="wifi level-3">
         <span></span><span></span><span></span>
       </div>
-      <div class="module-toggle" id="toggle${i}"></div>
     </div>
 
     <h2>Trampa #${i}</h2>
 
-    <div class="preview">
+    <div class="preview" id="preview${i}">
       <b>Última captura</b>
-      <span>Sin imagen</span>
+      <img id="capture${i}"
+           src="${CAPTURE_URL}?t=${Date.now()}"
+           style="width:100%;border-radius:10px;margin-top:6px">
     </div>
 
     <div class="controls">
-      <button id="cam${i}">📷 Cámara</button>
+      <button id="cam${i}">📡 Cámara en vivo</button>
       <button id="set${i}">⚙️ Ajustes</button>
     </div>
 
     <div class="settings" id="settings${i}">
-      <label>Zoom <input type="range"></label>
-      <label>Brillo <input type="range"></label>
-      <label>Contraste <input type="range"></label>
+      <label>Zoom
+        <input type="range" min="1" max="2" step="0.01" value="1">
+      </label>
+      <label>Brillo
+        <input type="range" min="0.5" max="1.5" step="0.01" value="1">
+      </label>
+      <label>Contraste
+        <input type="range" min="0.5" max="1.5" step="0.01" value="1">
+      </label>
     </div>
 
     <div class="history">Último evento: Hace minutos</div>
@@ -270,35 +198,58 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
   grid.appendChild(card);
 
-  const toggle = card.querySelector(`#toggle${i}`);
-  const camBtn = card.querySelector(`#cam${i}`);
-  const setBtn = card.querySelector(`#set${i}`);
-  const preview = card.querySelector(".preview");
+  const preview  = card.querySelector(`#preview${i}`);
+  const camBtn   = card.querySelector(`#cam${i}`);
+  const settings = card.querySelector(`#settings${i}`);
+  const sliders  = settings.querySelectorAll("input");
 
-  function applyState(){
-    const en = isEnabled(i);
-    toggle.classList.toggle("off", !en);
-    card.classList.toggle("disabled", !en);
-    camBtn.disabled = !en;
-    setBtn.disabled = !en;
+  function applyFilters(img){
+    const [z,b,c] = sliders;
+    img.style.transform = `scale(${z.value})`;
+    img.style.filter = `brightness(${b.value}) contrast(${c.value})`;
   }
 
-  toggle.onclick = ()=>{
-    setEnabled(i, !isEnabled(i));
-    applyState();
-  };
+  sliders.forEach(sl=>{
+    sl.oninput = ()=>{
+      const img = preview.querySelector("img");
+      if(img) applyFilters(img);
+    };
+  });
 
   camBtn.onclick = ()=>{
-    sendStreamREST(i);
-    openLiveCamera(i, preview);
+    let s = CAMERA_LIVE_DURATION / 1000;
+
+    preview.innerHTML = `
+      <b>📡 Cámara en vivo</b>
+      <img src="${STREAM_URL}"
+           style="width:100%;border-radius:10px;margin-top:6px">
+      <span>${s}s</span>
+    `;
+
+    const img = preview.querySelector("img");
+    applyFilters(img);
+
+    const t = setInterval(()=>{
+      s--;
+      preview.querySelector("span").textContent = `${s}s`;
+    },1000);
+
+    setTimeout(()=>{
+      clearInterval(t);
+      preview.innerHTML = `
+        <b>Última captura</b>
+        <img src="${CAPTURE_URL}?t=${Date.now()}"
+             style="width:100%;border-radius:10px;margin-top:6px">
+      `;
+      applyFilters(preview.querySelector("img"));
+    }, CAMERA_LIVE_DURATION);
   };
 
-  setBtn.onclick = ()=>document.getElementById("settings"+i).classList.toggle("active");
-
-  applyState();
+  card.querySelector(`#set${i}`).onclick = ()=>{
+    settings.classList.toggle("active");
+  };
 }
 </script>
 
 </body>
 </html>
-
