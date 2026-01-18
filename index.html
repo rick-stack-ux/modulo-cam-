@@ -43,6 +43,11 @@ header img.logo{height:110px}
   flex-direction:column;
   gap:12px;
   box-shadow:var(--shadow);
+  transition:.2s;
+}
+.card.disabled{
+  opacity:.45;
+  filter:grayscale(1);
 }
 
 /* TOP ICONS */
@@ -53,6 +58,19 @@ header img.logo{height:110px}
   display:flex;
   gap:8px;
   align-items:center;
+}
+
+/* MODULE TOGGLE */
+.module-toggle{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#ffffff;
+  cursor:pointer;
+  box-shadow:0 0 0 2px rgba(0,0,0,.25);
+}
+.module-toggle.off{
+  background:rgba(255,255,255,.25);
 }
 
 /* WIFI */
@@ -83,7 +101,7 @@ h2{color:#fff;font-size:1rem}
 .preview{
   background:rgba(0,0,0,.15);
   border-radius:14px;
-  height:180px;
+  height:140px;
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -110,6 +128,10 @@ h2{color:#fff;font-size:1rem}
   cursor:pointer;
   font-weight:700;
 }
+.controls button:disabled{
+  background:rgba(255,255,255,.4);
+  cursor:not-allowed;
+}
 
 /* SETTINGS */
 .settings{
@@ -118,16 +140,8 @@ h2{color:#fff;font-size:1rem}
   border-radius:12px;
   padding:10px;
   font-size:.7rem;
-  gap:6px;
 }
 .settings.active{display:grid}
-
-.settings label{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  color:#fff;
-}
 
 /* HISTORIAL */
 .history{font-size:.7rem;color:var(--muted)}
@@ -147,32 +161,41 @@ h2{color:#fff;font-size:1rem}
 const TOTAL_TRAPS = 3;
 const CAMERA_LIVE_DURATION = 20000;
 
-/* ================= ESP32-CAM ================= */
-/* ⚠️ CAMBIA SOLO ESTA IP SI ES NECESARIO */
+/* ===== ESP32-CAM ===== */
 const CAM_IP = "10.38.40.178";
 const STREAM_URL  = `http://${CAM_IP}:81/stream`;
 const CAPTURE_URL = `http://${CAM_IP}:81/capture.jpg`;
+
+/* ===== FIREBASE (SE MANTIENE) ===== */
+const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
+function sendStreamREST(id){
+  fetch(`${FIREBASE_DB}/traps/${id}/command.json`,{
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify("STREAM")
+  });
+}
 
 /* ================= GENERAR TARJETAS ================= */
 const grid = document.getElementById("grid");
 
 for(let i=1;i<=TOTAL_TRAPS;i++){
-  const card = document.createElement("div");
+  const card=document.createElement("div");
   card.className="card";
 
-  card.innerHTML = `
+  card.innerHTML=`
     <div class="top-icons">
       <div class="wifi level-3">
         <span></span><span></span><span></span>
       </div>
+      <div class="module-toggle"></div>
     </div>
 
     <h2>Trampa #${i}</h2>
 
     <div class="preview" id="preview${i}">
       <b>Última captura</b>
-      <img id="capture${i}"
-           src="${CAPTURE_URL}?t=${Date.now()}"
+      <img src="${CAPTURE_URL}?t=${Date.now()}"
            style="width:100%;border-radius:10px;margin-top:6px">
     </div>
 
@@ -182,15 +205,9 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
     </div>
 
     <div class="settings" id="settings${i}">
-      <label>Zoom
-        <input type="range" min="1" max="2" step="0.01" value="1">
-      </label>
-      <label>Brillo
-        <input type="range" min="0.5" max="1.5" step="0.01" value="1">
-      </label>
-      <label>Contraste
-        <input type="range" min="0.5" max="1.5" step="0.01" value="1">
-      </label>
+      <label>Zoom <input type="range"></label>
+      <label>Brillo <input type="range"></label>
+      <label>Contraste <input type="range"></label>
     </div>
 
     <div class="history">Último evento: Hace minutos</div>
@@ -198,55 +215,38 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
   grid.appendChild(card);
 
-  const preview  = card.querySelector(`#preview${i}`);
-  const camBtn   = card.querySelector(`#cam${i}`);
-  const settings = card.querySelector(`#settings${i}`);
-  const sliders  = settings.querySelectorAll("input");
+  const preview=document.getElementById(`preview${i}`);
+  const camBtn=document.getElementById(`cam${i}`);
 
-  function applyFilters(img){
-    const [z,b,c] = sliders;
-    img.style.transform = `scale(${z.value})`;
-    img.style.filter = `brightness(${b.value}) contrast(${c.value})`;
-  }
+  camBtn.onclick=()=>{
+    sendStreamREST(i);
+    let s=CAMERA_LIVE_DURATION/1000;
 
-  sliders.forEach(sl=>{
-    sl.oninput = ()=>{
-      const img = preview.querySelector("img");
-      if(img) applyFilters(img);
-    };
-  });
-
-  camBtn.onclick = ()=>{
-    let s = CAMERA_LIVE_DURATION / 1000;
-
-    preview.innerHTML = `
+    preview.innerHTML=`
       <b>📡 Cámara en vivo</b>
-      <img src="${STREAM_URL}"
-           style="width:100%;border-radius:10px;margin-top:6px">
+      <iframe src="${STREAM_URL}"
+        style="width:100%;height:110px;border:none;border-radius:10px">
+      </iframe>
       <span>${s}s</span>
     `;
 
-    const img = preview.querySelector("img");
-    applyFilters(img);
-
-    const t = setInterval(()=>{
+    const t=setInterval(()=>{
       s--;
-      preview.querySelector("span").textContent = `${s}s`;
+      preview.querySelector("span").textContent=`${s}s`;
     },1000);
 
     setTimeout(()=>{
       clearInterval(t);
-      preview.innerHTML = `
+      preview.innerHTML=`
         <b>Última captura</b>
         <img src="${CAPTURE_URL}?t=${Date.now()}"
              style="width:100%;border-radius:10px;margin-top:6px">
       `;
-      applyFilters(preview.querySelector("img"));
-    }, CAMERA_LIVE_DURATION);
+    },CAMERA_LIVE_DURATION);
   };
 
-  card.querySelector(`#set${i}`).onclick = ()=>{
-    settings.classList.toggle("active");
+  document.getElementById(`set${i}`).onclick=()=>{
+    document.getElementById(`settings${i}`).classList.toggle("active");
   };
 }
 </script>
