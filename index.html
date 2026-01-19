@@ -166,7 +166,7 @@ const CAM_IP = "10.38.40.178";
 const STREAM_URL  = `http://${CAM_IP}:81/stream`;
 const CAPTURE_URL = `http://${CAM_IP}:81/capture.jpg`;
 
-/* ===== FIREBASE REST (SE MANTIENE) ===== */
+/* ===== FIREBASE (SE MANTIENE) ===== */
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 function sendStreamREST(id){
   fetch(`${FIREBASE_DB}/traps/${id}/command.json`,{
