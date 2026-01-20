@@ -15,21 +15,74 @@
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#ffffff;font-family:system-ui,sans-serif;padding:20px;}
+
+body{
+  background:#ffffff;
+  font-family:system-ui,sans-serif;
+  padding:20px;
+}
+
 header{display:flex;justify-content:center;margin-bottom:28px}
 header img.logo{height:110px}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
-.card{position:relative;background:var(--monster-dark);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow);transition:.2s;}
-.card.disabled{opacity:.45;filter:grayscale(1);}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+}
 
-.top-icons{position:absolute;top:14px;right:14px;display:flex;gap:8px;align-items:center;}
+.card{
+  position:relative;
+  background:var(--monster-dark);
+  border-radius:18px;
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  box-shadow:var(--shadow);
+  transition:.2s;
+}
+.card.disabled{
+  opacity:.45;
+  filter:grayscale(1);
+}
 
-.module-toggle{width:14px;height:14px;border-radius:50%;background:#ffffff;cursor:pointer;box-shadow:0 0 0 2px rgba(0,0,0,.25);}
-.module-toggle.off{background:rgba(255,255,255,.25);}
+.top-icons{
+  position:absolute;
+  top:14px;
+  right:14px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
 
-.wifi{position:relative;width:18px;height:14px;}
-.wifi span{position:absolute;bottom:0;left:50%;transform:translateX(-50%);border:2px solid transparent;border-top-color:#fff;border-radius:50%;opacity:.35;}
+.module-toggle{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#ffffff;
+  cursor:pointer;
+  box-shadow:0 0 0 2px rgba(0,0,0,.25);
+}
+.module-toggle.off{
+  background:rgba(255,255,255,.25);
+}
+
+.wifi{
+  position:relative;
+  width:18px;
+  height:14px;
+}
+.wifi span{
+  position:absolute;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  border:2px solid transparent;
+  border-top-color:#fff;
+  border-radius:50%;
+  opacity:.35;
+}
 .wifi span:nth-child(1){width:6px;height:6px;opacity:1}
 .wifi span:nth-child(2){width:12px;height:12px}
 .wifi span:nth-child(3){width:18px;height:18px}
@@ -40,7 +93,7 @@ h2{color:#fff;font-size:1rem}
 .preview{
   background:rgba(0,0,0,.15);
   border-radius:14px;
-  height:140px;
+  height:160px;
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -51,11 +104,33 @@ h2{color:#fff;font-size:1rem}
   overflow:hidden;
 }
 
-.controls{display:flex;gap:10px;}
-.controls button{flex:1;font-size:.8rem;background:#ffffff;border:none;color:#000;padding:10px;border-radius:12px;cursor:pointer;font-weight:700;}
-.controls button:disabled{background:rgba(255,255,255,.4);cursor:not-allowed;}
+.controls{
+  display:flex;
+  gap:10px;
+}
+.controls button{
+  flex:1;
+  font-size:.8rem;
+  background:#ffffff;
+  border:none;
+  color:#000;
+  padding:10px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:700;
+}
+.controls button:disabled{
+  background:rgba(255,255,255,.4);
+  cursor:not-allowed;
+}
 
-.settings{display:none;background:rgba(0,0,0,.18);border-radius:12px;padding:10px;font-size:.7rem;}
+.settings{
+  display:none;
+  background:rgba(0,0,0,.18);
+  border-radius:12px;
+  padding:10px;
+  font-size:.7rem;
+}
 .settings.active{display:grid}
 
 .history{font-size:.7rem;color:var(--muted)}
@@ -71,67 +146,70 @@ h2{color:#fff;font-size:1rem}
 <section class="grid" id="grid"></section>
 
 <script>
-/* ===== CONFIG ===== */
+/* ================= CONFIG ================= */
 const TOTAL_TRAPS = 3;
 const CAMERA_LIVE_DURATION = 20000;
 const CAMERA_DAILY_LIMIT = 2;
 
-/* ===== URLs ===== */
+/* ===== ENDPOINTS REALES ===== */
+const MAIN_ESP_BASE = "http://10.153.210.142";   // <-- cambia solo esta IP
+const STREAM_URL = MAIN_ESP_BASE + "/stream";
+const LAST_IMAGE_URL = MAIN_ESP_BASE + "/last.jpg";
+
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
-const MAIN_ESP_STREAM_URL = "http://10.38.40.178:81/stream";
-const LAST_IMAGE_URL = "http://10.38.40.178/last.jpg";
 
-/* ===== REST ===== */
-function fbGet(path){
-  return fetch(`${FIREBASE_DB}${path}.json`).then(r=>r.json());
+/* ================= FECHA ================= */
+function today(){
+  return new Date().toISOString().slice(0,10);
 }
 
-function fbPut(path, val){
-  return fetch(`${FIREBASE_DB}${path}.json`,{
-    method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(val)
+/* ================= CLAVES ================= */
+function moduleKey(id){ return `module_enabled_${id}`; }
+function cameraKey(id){ return `camera_views_${id}_${today()}`; }
+
+/* ================= ESTADOS ================= */
+function isEnabled(id){
+  const v = localStorage.getItem(moduleKey(id));
+  return v === null ? true : v === "true";
+}
+function setEnabled(id,val){
+  localStorage.setItem(moduleKey(id), val);
+}
+function getViews(id){
+  return parseInt(localStorage.getItem(cameraKey(id))) || 0;
+}
+function addView(id){
+  localStorage.setItem(cameraKey(id), getViews(id)+1);
+}
+
+/* ================= FIREBASE CMD ================= */
+function sendCommand(id, cmd){
+  fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cmd)
   });
 }
 
-/* ===== UI HELPERS ===== */
-function updateTrapUI(id, card){
-  const wifi = card.querySelector(".wifi");
-  const history = card.querySelector(".history");
-  const preview = card.querySelector(".preview");
-
-  fbGet(`/traps/${id}/online`).then(v=>{
-    wifi.classList.toggle("level-3", v === true);
-  });
-
-  fbGet(`/traps/${id}/lastEvent`).then(v=>{
-    if(v) history.textContent = "Último evento: " + v;
-  });
-
-  if(id === 1){
-    fbGet(`/traps/1/lastCapture`).then(v=>{
-      if(v === "OK"){
-        preview.innerHTML = `
-          <b>Última captura</b>
-          <img src="${LAST_IMAGE_URL}?t=${Date.now()}"
-               style="width:100%;border-radius:10px;margin-top:6px">
-        `;
-      }
-    });
-  }
-}
-
-/* ===== CÁMARA ===== */
+/* ================= CÁMARA EN VIVO ================= */
 function openLiveCamera(id, preview){
   if(id !== 1) return;
+  if(!isEnabled(id)) return;
 
-  fbPut(`/traps/1/command`, "STREAM");
+  if(getViews(id) >= CAMERA_DAILY_LIMIT){
+    alert("Límite diario de cámara alcanzado");
+    return;
+  }
 
+  addView(id);
+  sendCommand(id, "STREAM");
+
+  const original = preview.innerHTML;
   let s = CAMERA_LIVE_DURATION / 1000;
 
   preview.innerHTML = `
     <b>📡 Cámara en vivo</b>
-    <img src="${MAIN_ESP_STREAM_URL}?t=${Date.now()}"
+    <img src="${STREAM_URL}?t=${Date.now()}"
          style="width:100%;border-radius:10px;margin-top:6px">
     <span>${s}s</span>
   `;
@@ -143,11 +221,15 @@ function openLiveCamera(id, preview){
 
   setTimeout(()=>{
     clearInterval(t);
-    updateTrapUI(1, document.querySelector(".card"));
+    preview.innerHTML = `
+      <b>Última captura</b>
+      <img src="${LAST_IMAGE_URL}?t=${Date.now()}"
+           style="width:100%;border-radius:10px;margin-top:6px">
+    `;
   }, CAMERA_LIVE_DURATION);
 }
 
-/* ===== BUILD UI ===== */
+/* ================= GENERAR TARJETAS ================= */
 const grid = document.getElementById("grid");
 
 for(let i=1;i<=TOTAL_TRAPS;i++){
@@ -156,13 +238,15 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
   card.innerHTML = `
     <div class="top-icons">
-      <div class="wifi"><span></span><span></span><span></span></div>
+      <div class="wifi level-3">
+        <span></span><span></span><span></span>
+      </div>
       <div class="module-toggle" id="toggle${i}"></div>
     </div>
 
     <h2>Trampa #${i}</h2>
 
-    <div class="preview">
+    <div class="preview" id="preview${i}">
       <b>Última captura</b>
       <span>Sin imagen</span>
     </div>
@@ -178,25 +262,48 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
       <label>Contraste <input type="range"></label>
     </div>
 
-    <div class="history">Último evento: ---</div>
+    <div class="history">Último evento: Hace minutos</div>
   `;
 
   grid.appendChild(card);
 
+  const toggle = card.querySelector(`#toggle${i}`);
   const camBtn = card.querySelector(`#cam${i}`);
-  const preview = card.querySelector(".preview");
+  const setBtn = card.querySelector(`#set${i}`);
+  const preview = card.querySelector(`#preview${i}`);
 
-  camBtn.onclick = ()=>openLiveCamera(i, preview);
+  function applyState(){
+    const en = isEnabled(i);
+    toggle.classList.toggle("off", !en);
+    card.classList.toggle("disabled", !en);
+    camBtn.disabled = !en || i !== 1;
+    setBtn.disabled = !en;
+  }
 
-  updateTrapUI(i, card);
+  toggle.onclick = ()=>{
+    const newState = !isEnabled(i);
+    setEnabled(i, newState);
+    sendCommand(i, newState ? "ENABLE" : "DISABLE");
+    applyState();
+  };
+
+  camBtn.onclick = ()=> openLiveCamera(i, preview);
+  setBtn.onclick = ()=> document.getElementById("settings"+i).classList.toggle("active");
+
+  applyState();
 }
 
-/* ===== AUTO REFRESH ===== */
-setInterval(()=>{
-  document.querySelectorAll(".card").forEach((card,i)=>{
-    updateTrapUI(i+1, card);
-  });
-}, 5000);
+/* ===== CARGAR ÚLTIMA CAPTURA AL INICIO ===== */
+window.onload = ()=>{
+  const preview1 = document.getElementById("preview1");
+  if(preview1){
+    preview1.innerHTML = `
+      <b>Última captura</b>
+      <img src="${LAST_IMAGE_URL}?t=${Date.now()}"
+           style="width:100%;border-radius:10px;margin-top:6px">
+    `;
+  }
+};
 </script>
 
 </body>
