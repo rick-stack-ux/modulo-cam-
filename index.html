@@ -170,12 +170,12 @@ const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 /* ===== ÚLTIMA CAPTURA ===== */
 const LAST_CAPTURE_URL = "http://10.38.40.178/last.jpg";
 
-/* ===== ENVÍO DE COMANDO ===== */
-function sendStreamREST(id){
+/* ===== ENVÍO DE COMANDO GENERAL ===== */
+function sendCommand(id, cmd){
   fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify("STREAM")
+    body: JSON.stringify(cmd)
   });
 }
 
@@ -214,7 +214,7 @@ function openLiveCamera(id, preview){
   }
 
   addView(id);
-  sendStreamREST(id);
+  sendCommand(id, "STREAM");   // 🔗 ORDEN REAL A LA ESP32
 
   const original = preview.innerHTML;
   let s = CAMERA_LIVE_DURATION / 1000;
@@ -293,7 +293,9 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   }
 
   toggle.onclick = ()=>{
-    setEnabled(i, !isEnabled(i));
+    const newState = !isEnabled(i);
+    setEnabled(i, newState);
+    sendCommand(i, newState ? "ENABLE" : "DISABLE");  // 🔗 ORDEN REAL
     applyState();
   };
 
@@ -310,11 +312,17 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 window.onload = ()=>{
   const firstPreview = document.querySelector(".preview");
   if(firstPreview){
-    firstPreview.innerHTML = `
-      <b>Última captura</b>
-      <img src="${LAST_CAPTURE_URL}?t=${Date.now()}"
-           style="width:100%;border-radius:10px;margin-top:6px">
-    `;
+    fetch(`${FIREBASE_DB}/traps/1/lastImage.json`)
+      .then(r=>r.json())
+      .then(url=>{
+        if(url){
+          firstPreview.innerHTML = `
+            <b>Última captura</b>
+            <img src="${url}?t=${Date.now()}"
+                 style="width:100%;border-radius:10px;margin-top:6px">
+          `;
+        }
+      });
   }
 };
 </script>
