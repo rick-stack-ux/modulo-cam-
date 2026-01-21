@@ -22,18 +22,15 @@ body{
   padding:20px;
 }
 
-/* HEADER */
 header{display:flex;justify-content:center;margin-bottom:28px}
 header img.logo{height:110px}
 
-/* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:20px;
 }
 
-/* CARD */
 .card{
   position:relative;
   background:var(--monster-dark);
@@ -50,7 +47,6 @@ header img.logo{height:110px}
   filter:grayscale(1);
 }
 
-/* TOP ICONS */
 .top-icons{
   position:absolute;
   top:14px;
@@ -60,7 +56,6 @@ header img.logo{height:110px}
   align-items:center;
 }
 
-/* MODULE TOGGLE */
 .module-toggle{
   width:14px;
   height:14px;
@@ -73,7 +68,6 @@ header img.logo{height:110px}
   background:rgba(255,255,255,.25);
 }
 
-/* WIFI */
 .wifi{
   position:relative;
   width:18px;
@@ -94,14 +88,12 @@ header img.logo{height:110px}
 .wifi span:nth-child(3){width:18px;height:18px}
 .wifi.level-3 span{opacity:1}
 
-/* TITULOS */
 h2{color:#fff;font-size:1rem}
 
-/* PREVIEW */
 .preview{
   background:rgba(0,0,0,.15);
   border-radius:14px;
-  height:140px;
+  height:160px;
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -109,9 +101,9 @@ h2{color:#fff;font-size:1rem}
   font-size:.75rem;
   gap:6px;
   color:var(--muted);
+  overflow:hidden;
 }
 
-/* CONTROLES */
 .controls{
   display:flex;
   gap:10px;
@@ -132,7 +124,6 @@ h2{color:#fff;font-size:1rem}
   cursor:not-allowed;
 }
 
-/* SETTINGS */
 .settings{
   display:none;
   background:rgba(0,0,0,.18);
@@ -142,7 +133,6 @@ h2{color:#fff;font-size:1rem}
 }
 .settings.active{display:grid}
 
-/* HISTORIAL */
 .history{font-size:.7rem;color:var(--muted)}
 </style>
 </head>
@@ -161,22 +151,23 @@ const TOTAL_TRAPS = 3;
 const CAMERA_LIVE_DURATION = 20000;
 const CAMERA_DAILY_LIMIT = 2;
 
-/* ===== ESP32 PRINCIPAL ===== */
-const MAIN_ESP_URL = "http://10.124.29.142";
-const STREAM_URL = `${MAIN_ESP_URL}/stream`;
-const LAST_IMAGE_URL = `${MAIN_ESP_URL}/last.jpg`;
+/* ===== ENDPOINTS REALES ===== */
+const MAIN_ESP_BASE = "http://10.153.210.142";   // <-- cambia solo esta IP
+const STREAM_URL = MAIN_ESP_BASE + "/stream";
+const LAST_IMAGE_URL = MAIN_ESP_BASE + "/last.jpg";
 
-/* ===== FIREBASE REST ===== */
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 
-/* ================= HELPERS ================= */
+/* ================= FECHA ================= */
 function today(){
   return new Date().toISOString().slice(0,10);
 }
 
+/* ================= CLAVES ================= */
 function moduleKey(id){ return `module_enabled_${id}`; }
 function cameraKey(id){ return `camera_views_${id}_${today()}`; }
 
+/* ================= ESTADOS ================= */
 function isEnabled(id){
   const v = localStorage.getItem(moduleKey(id));
   return v === null ? true : v === "true";
@@ -191,6 +182,7 @@ function addView(id){
   localStorage.setItem(cameraKey(id), getViews(id)+1);
 }
 
+/* ================= FIREBASE CMD ================= */
 function sendCommand(id, cmd){
   fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
     method: "PUT",
@@ -199,7 +191,7 @@ function sendCommand(id, cmd){
   });
 }
 
-/* ================= CAMERA ================= */
+/* ================= CÁMARA EN VIVO ================= */
 function openLiveCamera(id, preview){
   if(id !== 1) return;
   if(!isEnabled(id)) return;
@@ -254,7 +246,7 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
     <h2>Trampa #${i}</h2>
 
-    <div class="preview">
+    <div class="preview" id="preview${i}">
       <b>Última captura</b>
       <span>Sin imagen</span>
     </div>
@@ -278,7 +270,7 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   const toggle = card.querySelector(`#toggle${i}`);
   const camBtn = card.querySelector(`#cam${i}`);
   const setBtn = card.querySelector(`#set${i}`);
-  const preview = card.querySelector(".preview");
+  const preview = card.querySelector(`#preview${i}`);
 
   function applyState(){
     const en = isEnabled(i);
@@ -301,21 +293,16 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   applyState();
 }
 
-/* ================= CARGAR ÚLTIMA IMAGEN ================= */
+/* ===== CARGAR ÚLTIMA CAPTURA AL INICIO ===== */
 window.onload = ()=>{
-  const firstPreview = document.querySelector(".preview");
-
-  fetch(`${FIREBASE_DB}/traps/1/lastImageTs.json`)
-    .then(r => r.json())
-    .then(ts => {
-      if(ts){
-        firstPreview.innerHTML = `
-          <b>Última captura</b>
-          <img src="${LAST_IMAGE_URL}?t=${ts}"
-               style="width:100%;border-radius:10px;margin-top:6px">
-        `;
-      }
-    });
+  const preview1 = document.getElementById("preview1");
+  if(preview1){
+    preview1.innerHTML = `
+      <b>Última captura</b>
+      <img src="${LAST_IMAGE_URL}?t=${Date.now()}"
+           style="width:100%;border-radius:10px;margin-top:6px">
+    `;
+  }
 };
 </script>
 
