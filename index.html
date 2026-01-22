@@ -55,7 +55,6 @@ header img.logo{height:110px}
   align-items:center;
 }
 
-/* ===== TOGGLE ORIGINAL ===== */
 .module-toggle{
   width:14px;
   height:14px;
@@ -68,7 +67,6 @@ header img.logo{height:110px}
   background:rgba(255,255,255,.25);
 }
 
-/* ===== WIFI ORIGINAL ===== */
 .wifi{
   position:relative;
   width:18px;
@@ -91,11 +89,11 @@ header img.logo{height:110px}
 
 h2{color:#fff;font-size:1rem}
 
-/* ===== PREVIEW MISMO TAMAÑO PERO MEJOR PROPORCIÓN ===== */
+/* ===== PREVIEW: MISMO DISEÑO, SOLO MÁS CUADRADO ===== */
 .preview{
   background:rgba(0,0,0,.15);
   border-radius:14px;
-  height:200px;                 /* un poco más alto */
+  height:220px;                 /* antes 160px → ahora más cuadrado */
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -106,11 +104,11 @@ h2{color:#fff;font-size:1rem}
   overflow:hidden;
 }
 
+/* imagen respetando QVGA */
 .preview img{
   width:100%;
   height:100%;
-  object-fit:contain;
-  transition:.2s;
+  object-fit:contain;          /* NO deforma, respeta 4:3 */
 }
 
 .controls{
@@ -139,10 +137,8 @@ h2{color:#fff;font-size:1rem}
   border-radius:12px;
   padding:10px;
   font-size:.7rem;
-  color:#fff;
 }
 .settings.active{display:grid}
-.settings label{display:flex;justify-content:space-between;align-items:center}
 
 .history{font-size:.7rem;color:var(--muted)}
 </style>
@@ -160,23 +156,38 @@ h2{color:#fff;font-size:1rem}
 /* ================= CONFIG ================= */
 const TOTAL_TRAPS = 3;
 const CAMERA_LIVE_DURATION = 20000;
+const CAMERA_DAILY_LIMIT = 2;
 
-/* ===== IP ESP32 ===== */
-const MAIN_ESP_BASE = "http://10.153.210.142";
+/* ===== IP DE TU ESP32 PRINCIPAL ===== */
+const MAIN_ESP_BASE = "http://10.153.210.142";   // ← TU IP REAL
 const STREAM_URL = MAIN_ESP_BASE + "/stream";
 const LAST_IMAGE_URL = MAIN_ESP_BASE + "/last.jpg";
 
 /* ===== FIREBASE ===== */
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 
-/* ================= ESTADOS LOCALES ================= */
+/* ================= FECHA ================= */
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+
+/* ================= CLAVES ================= */
 function moduleKey(id){ return `module_enabled_${id}`; }
+function cameraKey(id){ return `camera_views_${id}_${today()}`; }
+
+/* ================= ESTADOS ================= */
 function isEnabled(id){
   const v = localStorage.getItem(moduleKey(id));
   return v === null ? true : v === "true";
 }
 function setEnabled(id,val){
   localStorage.setItem(moduleKey(id), val);
+}
+function getViews(id){
+  return parseInt(localStorage.getItem(cameraKey(id))) || 0;
+}
+function addView(id){
+  localStorage.setItem(cameraKey(id), getViews(id)+1);
 }
 
 /* ================= FIREBASE ================= */
@@ -193,34 +204,32 @@ function sendCommand(id, cmd){
   });
 }
 
-/* ================= FILTROS ================= */
-let zoom = 1;
-let brightness = 1;
-let contrast = 1;
-
-function applyFilters(img){
-  img.style.transform = `scale(${zoom})`;
-  img.style.filter = `brightness(${brightness}) contrast(${contrast})`;
-}
-
-/* ================= STREAM ================= */
+/* ================= CÁMARA EN VIVO ================= */
 async function openLiveCamera(id, preview){
+  if(id !== 1) return;
+  if(!isEnabled(id)) return;
+
   const state = await getTrapState(id);
   if(state.online !== true){
     alert("Trampa dormida. Espere próximo evento.");
     return;
   }
 
+  if(getViews(id) >= CAMERA_DAILY_LIMIT){
+    alert("Límite diario de cámara alcanzado");
+    return;
+  }
+
+  addView(id);
+  sendCommand(id, "STREAM");
+
   let s = CAMERA_LIVE_DURATION / 1000;
 
   preview.innerHTML = `
     <b>📡 Cámara en vivo</b>
-    <img id="imgLive${id}" src="${STREAM_URL}?t=${Date.now()}">
+    <img src="${STREAM_URL}?t=${Date.now()}">
     <span>${s}s</span>
   `;
-
-  const img = document.getElementById(`imgLive${id}`);
-  applyFilters(img);
 
   const t = setInterval(()=>{
     s--;
@@ -229,29 +238,14 @@ async function openLiveCamera(id, preview){
 
   setTimeout(()=>{
     clearInterval(t);
-    loadLastCapture(id, preview);
+    preview.innerHTML = `
+      <b>Última captura</b>
+      <img src="${LAST_IMAGE_URL}?t=${Date.now()}">
+    `;
   }, CAMERA_LIVE_DURATION);
 }
 
-/* ================= ÚLTIMA CAPTURA PERSISTENTE ================= */
-function loadLastCapture(id, preview){
-
-  const saved = localStorage.getItem(`lastImage_${id}`);
-
-  preview.innerHTML = `
-    <b>Última captura</b>
-    <img id="imgLast${id}" src="${saved ? saved : LAST_IMAGE_URL}?t=${Date.now()}">
-  `;
-
-  const img = document.getElementById(`imgLast${id}`);
-  applyFilters(img);
-
-  img.onload = ()=>{
-    localStorage.setItem(`lastImage_${id}`, LAST_IMAGE_URL);
-  };
-}
-
-/* ================= GENERAR TARJETAS (IGUAL QUE TU DISEÑO) ================= */
+/* ================= GENERAR TARJETAS ================= */
 const grid = document.getElementById("grid");
 
 for(let i=1;i<=TOTAL_TRAPS;i++){
@@ -279,9 +273,9 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
     </div>
 
     <div class="settings" id="settings${i}">
-      <label>Zoom <input type="range" min="1" max="2" step="0.1" value="1"></label>
-      <label>Brillo <input type="range" min="0.5" max="2" step="0.1" value="1"></label>
-      <label>Contraste <input type="range" min="0.5" max="2" step="0.1" value="1"></label>
+      <label>Zoom <input type="range"></label>
+      <label>Brillo <input type="range"></label>
+      <label>Contraste <input type="range"></label>
     </div>
 
     <div class="history">Estado sincronizado con Firebase</div>
@@ -293,9 +287,7 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   const camBtn = card.querySelector(`#cam${i}`);
   const setBtn = card.querySelector(`#set${i}`);
   const preview = card.querySelector(`#preview${i}`);
-  const settings = card.querySelector(`#settings${i}`);
 
-  /* ===== ESTADO TOGGLE PERSISTENTE ===== */
   function applyState(){
     const en = isEnabled(i);
     toggle.classList.toggle("off", !en);
@@ -312,38 +304,27 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   };
 
   camBtn.onclick = ()=> openLiveCamera(i, preview);
-  setBtn.onclick = ()=> settings.classList.toggle("active");
-
-  /* ===== FILTROS POR TARJETA ===== */
-  const sliders = settings.querySelectorAll("input");
-  sliders[0].oninput = e=>{ zoom = e.target.value; const img=preview.querySelector("img"); if(img) applyFilters(img); };
-  sliders[1].oninput = e=>{ brightness = e.target.value; const img=preview.querySelector("img"); if(img) applyFilters(img); };
-  sliders[2].oninput = e=>{ contrast = e.target.value; const img=preview.querySelector("img"); if(img) applyFilters(img); };
+  setBtn.onclick = ()=> document.getElementById("settings"+i).classList.toggle("active");
 
   applyState();
 }
 
-/* ================= CARGA AL RECARGAR ================= */
+/* ================= CARGA INICIAL DE IMAGEN ================= */
 window.onload = async ()=>{
-  for(let i=1;i<=TOTAL_TRAPS;i++){
-    const preview = document.getElementById(`preview${i}`);
+  const preview1 = document.getElementById("preview1");
+  if(!preview1) return;
 
-    try{
-      const state = await getTrapState(i);
+  try{
+    const state = await getTrapState(1);
 
-      // wifi indicador según señal
-      const wifi = document.getElementById(`wifi${i}`);
-      if(state.wifi > -60) wifi.className="wifi level-3";
-      else if(state.wifi > -75) wifi.className="wifi level-2";
-      else wifi.className="wifi level-1";
-
-      if(state.lastCapture === "OK"){
-        loadLastCapture(i, preview);
-      }
-    }catch(e){
-      // sin firebase → mostrar última guardada
-      loadLastCapture(i, preview);
+    if(state.lastCapture === "OK"){
+      preview1.innerHTML = `
+        <b>Última captura</b>
+        <img src="${LAST_IMAGE_URL}?t=${Date.now()}">
+      `;
     }
+  }catch(e){
+    // si no hay conexión, queda la última visible
   }
 };
 </script>
