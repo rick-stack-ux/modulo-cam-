@@ -94,7 +94,7 @@ header img.logo{height:110px}
 
 h2{color:#fff;font-size:1rem}
 
-/* ===== PREVIEW 4:3 + VISOR ===== */
+/* ===== PREVIEW EXACTO 4:3 + VISOR ===== */
 .preview{
   position:relative;
   background:#000;
@@ -118,6 +118,7 @@ h2{color:#fff;font-size:1rem}
   width:100%;
   height:100%;
   object-fit:contain;
+  transition:.2s;
 }
 
 /* ===== OVERLAY HORA ===== */
@@ -146,7 +147,7 @@ h2{color:#fff;font-size:1rem}
   box-shadow:0 0 10px rgba(0,0,0,.6);
   display:none;
   z-index:10;
-  width:180px;
+  width:190px;
 }
 
 .controls{
@@ -169,14 +170,22 @@ h2{color:#fff;font-size:1rem}
   cursor:not-allowed;
 }
 
+/* ===== SETTINGS ===== */
 .settings{
   display:none;
   background:rgba(0,0,0,.18);
   border-radius:12px;
   padding:10px;
   font-size:.7rem;
+  color:#fff;
 }
 .settings.active{display:grid}
+.settings label{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
 
 .history{font-size:.7rem;color:var(--muted)}
 </style>
@@ -209,17 +218,15 @@ function nowString(){
   return d.toISOString().replace("T"," ").substring(0,19);
 }
 
-/* estimación kbps desde RSSI (aprox) */
 function rssiToKbps(rssi){
-  if(rssi > -60) return "30000 kb/s";
-  if(rssi > -70) return "15000 kb/s";
-  if(rssi > -80) return "5000 kb/s";
-  return "1000 kb/s";
+  if(rssi > -60) return "30 Mb/s";
+  if(rssi > -70) return "15 Mb/s";
+  if(rssi > -80) return "5 Mb/s";
+  return "1 Mb/s";
 }
 
-/* ================= PERSISTENCIA TOGGLE ================= */
+/* ================= TOGGLE PERSISTENTE ================= */
 function moduleKey(id){ return `module_enabled_${id}`; }
-
 function isEnabled(id){
   const v = localStorage.getItem(moduleKey(id));
   return v === null ? true : v === "true";
@@ -242,8 +249,22 @@ function sendCommand(id, cmd){
   });
 }
 
+/* ================= FILTROS (AJUSTES) ================= */
+function applyFilters(preview){
+  const img = preview.querySelector("img");
+  if(!img) return;
+
+  const z = preview.dataset.zoom || 1;
+  const b = preview.dataset.bright || 1;
+  const c = preview.dataset.contrast || 1;
+
+  img.style.transform = `scale(${z})`;
+  img.style.filter = `brightness(${b}) contrast(${c})`;
+}
+
 /* ================= STREAM ================= */
 async function openLiveCamera(id, preview){
+
   const state = await getTrapState(id);
   if(state.online !== true){
     alert("Trampa dormida. Espere próximo evento.");
@@ -254,6 +275,8 @@ async function openLiveCamera(id, preview){
     <img src="${STREAM_URL}?t=${Date.now()}">
     <div class="overlay-time">${nowString()}</div>
   `;
+
+  applyFilters(preview);
 
   const clock = setInterval(()=>{
     const t = preview.querySelector(".overlay-time");
@@ -272,6 +295,7 @@ function loadLastCapture(id, preview){
     <img src="${LAST_IMAGE_URL}?t=${Date.now()}">
     <div class="overlay-time">${nowString()}</div>
   `;
+  applyFilters(preview);
 }
 
 /* ================= GENERAR TARJETAS ================= */
@@ -292,7 +316,8 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
     <h2>Trampa #${i}</h2>
 
-    <div class="preview" id="preview${i}">
+    <div class="preview" id="preview${i}" 
+         data-zoom="1" data-bright="1" data-contrast="1">
       <span>Sin imagen</span>
     </div>
 
@@ -302,9 +327,15 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
     </div>
 
     <div class="settings" id="settings${i}">
-      <label>Zoom <input type="range"></label>
-      <label>Brillo <input type="range"></label>
-      <label>Contraste <input type="range"></label>
+      <label>Zoom 
+        <input type="range" min="1" max="2" step="0.1" value="1">
+      </label>
+      <label>Brillo 
+        <input type="range" min="0.5" max="2" step="0.1" value="1">
+      </label>
+      <label>Contraste 
+        <input type="range" min="0.5" max="2" step="0.1" value="1">
+      </label>
     </div>
 
     <div class="history">Estado sincronizado con Firebase</div>
@@ -314,11 +345,14 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
   const toggle = card.querySelector(`#toggle${i}`);
   const camBtn = card.querySelector(`#cam${i}`);
+  const setBtn = card.querySelector(`#set${i}`);
   const preview = card.querySelector(`#preview${i}`);
   const wifi = card.querySelector(`#wifi${i}`);
   const wifiInfo = card.querySelector(`#wifiInfo${i}`);
+  const settings = card.querySelector(`#settings${i}`);
+  const sliders = settings.querySelectorAll("input");
 
-  /* ===== APLICAR ESTADO TOGGLE AL RECARGAR ===== */
+  /* ===== ESTADO TOGGLE ===== */
   function applyState(){
     const en = isEnabled(i);
     toggle.classList.toggle("off", !en);
@@ -334,8 +368,23 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   };
 
   camBtn.onclick = ()=> openLiveCamera(i, preview);
+  setBtn.onclick = ()=> settings.classList.toggle("active");
 
-  /* ===== CLICK WIFI → INFO ===== */
+  /* ===== SLIDERS ACTIVOS ===== */
+  sliders[0].oninput = e=>{
+    preview.dataset.zoom = e.target.value;
+    applyFilters(preview);
+  };
+  sliders[1].oninput = e=>{
+    preview.dataset.bright = e.target.value;
+    applyFilters(preview);
+  };
+  sliders[2].oninput = e=>{
+    preview.dataset.contrast = e.target.value;
+    applyFilters(preview);
+  };
+
+  /* ===== WIFI CLICK INFO ===== */
   wifi.onclick = async ()=>{
     const state = await getTrapState(i);
 
@@ -355,7 +404,7 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   applyState();
 }
 
-/* ================= CARGA INICIAL ================= */
+/* ================= CARGA AL ABRIR ================= */
 window.onload = async ()=>{
   for(let i=1;i<=TOTAL_TRAPS;i++){
     const preview = document.getElementById(`preview${i}`);
@@ -364,7 +413,6 @@ window.onload = async ()=>{
     try{
       const state = await getTrapState(i);
 
-      // nivel wifi
       if(state.wifi > -60) wifi.className="wifi level-3";
       else if(state.wifi > -75) wifi.className="wifi level-2";
       else wifi.className="wifi level-1";
@@ -374,7 +422,7 @@ window.onload = async ()=>{
       }
 
     }catch(e){
-      // queda última visible
+      // queda última imagen visible
     }
   }
 };
@@ -382,4 +430,3 @@ window.onload = async ()=>{
 
 </body>
 </html>
-
