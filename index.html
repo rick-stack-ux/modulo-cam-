@@ -89,26 +89,46 @@ header img.logo{height:110px}
 
 h2{color:#fff;font-size:1rem}
 
-/* ===== PREVIEW: MISMO DISEÑO, SOLO MÁS CUADRADO ===== */
+/* ===== PREVIEW EXACTO 4:3 + VISOR ===== */
 .preview{
-  background:rgba(0,0,0,.15);
+  position:relative;
+  background:#000;
   border-radius:14px;
-  height:220px;                 /* antes 160px → ahora más cuadrado */
+  width:100%;
+  aspect-ratio:4 / 3;          /* PROPORCIÓN EXACTA QVGA */
   display:flex;
-  flex-direction:column;
   justify-content:center;
   align-items:center;
   font-size:.75rem;
-  gap:6px;
   color:var(--muted);
   overflow:hidden;
+
+  /* marco tipo visor */
+  border:3px solid rgba(255,255,255,.25);
+  box-shadow:
+    inset 0 0 0 2px rgba(0,0,0,.6),
+    0 0 0 1px rgba(0,0,0,.4);
 }
 
-/* imagen respetando QVGA */
+/* imagen real sin deformar */
 .preview img{
   width:100%;
   height:100%;
-  object-fit:contain;          /* NO deforma, respeta 4:3 */
+  object-fit:contain;
+}
+
+/* ===== OVERLAY DE HORA ===== */
+.overlay-time{
+  position:absolute;
+  bottom:6px;
+  right:8px;
+  background:rgba(0,0,0,.6);
+  color:#39FF14;
+  font-size:.65rem;
+  padding:3px 6px;
+  border-radius:6px;
+  font-family:monospace;
+  letter-spacing:.5px;
 }
 
 .controls{
@@ -156,38 +176,19 @@ h2{color:#fff;font-size:1rem}
 /* ================= CONFIG ================= */
 const TOTAL_TRAPS = 3;
 const CAMERA_LIVE_DURATION = 20000;
-const CAMERA_DAILY_LIMIT = 2;
 
-/* ===== IP DE TU ESP32 PRINCIPAL ===== */
-const MAIN_ESP_BASE = "http://10.153.210.142";   // ← TU IP REAL
+/* ===== IP ESP32 ===== */
+const MAIN_ESP_BASE = "http://10.153.210.142";
 const STREAM_URL = MAIN_ESP_BASE + "/stream";
 const LAST_IMAGE_URL = MAIN_ESP_BASE + "/last.jpg";
 
 /* ===== FIREBASE ===== */
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 
-/* ================= FECHA ================= */
-function today(){
-  return new Date().toISOString().slice(0,10);
-}
-
-/* ================= CLAVES ================= */
-function moduleKey(id){ return `module_enabled_${id}`; }
-function cameraKey(id){ return `camera_views_${id}_${today()}`; }
-
-/* ================= ESTADOS ================= */
-function isEnabled(id){
-  const v = localStorage.getItem(moduleKey(id));
-  return v === null ? true : v === "true";
-}
-function setEnabled(id,val){
-  localStorage.setItem(moduleKey(id), val);
-}
-function getViews(id){
-  return parseInt(localStorage.getItem(cameraKey(id))) || 0;
-}
-function addView(id){
-  localStorage.setItem(cameraKey(id), getViews(id)+1);
+/* ================= FECHA FORMATEADA ================= */
+function nowString(){
+  const d = new Date();
+  return d.toISOString().replace("T"," ").substring(0,19);
 }
 
 /* ================= FIREBASE ================= */
@@ -196,18 +197,8 @@ async function getTrapState(id){
   return await res.json();
 }
 
-function sendCommand(id, cmd){
-  fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(cmd)
-  });
-}
-
-/* ================= CÁMARA EN VIVO ================= */
+/* ================= STREAM ================= */
 async function openLiveCamera(id, preview){
-  if(id !== 1) return;
-  if(!isEnabled(id)) return;
 
   const state = await getTrapState(id);
   if(state.online !== true){
@@ -215,37 +206,34 @@ async function openLiveCamera(id, preview){
     return;
   }
 
-  if(getViews(id) >= CAMERA_DAILY_LIMIT){
-    alert("Límite diario de cámara alcanzado");
-    return;
-  }
-
-  addView(id);
-  sendCommand(id, "STREAM");
-
   let s = CAMERA_LIVE_DURATION / 1000;
 
   preview.innerHTML = `
-    <b>📡 Cámara en vivo</b>
     <img src="${STREAM_URL}?t=${Date.now()}">
-    <span>${s}s</span>
+    <div class="overlay-time">${nowString()}</div>
   `;
 
-  const t = setInterval(()=>{
-    s--;
-    preview.querySelector("span").textContent = `${s}s`;
+  // actualizar hora cada segundo durante stream
+  const clock = setInterval(()=>{
+    const t = preview.querySelector(".overlay-time");
+    if(t) t.textContent = nowString();
   },1000);
 
   setTimeout(()=>{
-    clearInterval(t);
-    preview.innerHTML = `
-      <b>Última captura</b>
-      <img src="${LAST_IMAGE_URL}?t=${Date.now()}">
-    `;
+    clearInterval(clock);
+    loadLastCapture(id, preview);
   }, CAMERA_LIVE_DURATION);
 }
 
-/* ================= GENERAR TARJETAS ================= */
+/* ================= ÚLTIMA CAPTURA ================= */
+function loadLastCapture(id, preview){
+  preview.innerHTML = `
+    <img src="${LAST_IMAGE_URL}?t=${Date.now()}">
+    <div class="overlay-time">${nowString()}</div>
+  `;
+}
+
+/* ================= GENERAR TARJETAS (ESTRUCTURA ORIGINAL) ================= */
 const grid = document.getElementById("grid");
 
 for(let i=1;i<=TOTAL_TRAPS;i++){
@@ -263,7 +251,6 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
     <h2>Trampa #${i}</h2>
 
     <div class="preview" id="preview${i}">
-      <b>Última captura</b>
       <span>Sin imagen</span>
     </div>
 
@@ -283,51 +270,27 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
   grid.appendChild(card);
 
-  const toggle = card.querySelector(`#toggle${i}`);
   const camBtn = card.querySelector(`#cam${i}`);
-  const setBtn = card.querySelector(`#set${i}`);
   const preview = card.querySelector(`#preview${i}`);
 
-  function applyState(){
-    const en = isEnabled(i);
-    toggle.classList.toggle("off", !en);
-    card.classList.toggle("disabled", !en);
-    camBtn.disabled = !en || i !== 1;
-    setBtn.disabled = !en;
-  }
-
-  toggle.onclick = ()=>{
-    const newState = !isEnabled(i);
-    setEnabled(i, newState);
-    sendCommand(i, newState ? "ENABLE" : "DISABLE");
-    applyState();
-  };
-
   camBtn.onclick = ()=> openLiveCamera(i, preview);
-  setBtn.onclick = ()=> document.getElementById("settings"+i).classList.toggle("active");
-
-  applyState();
 }
 
-/* ================= CARGA INICIAL DE IMAGEN ================= */
+/* ================= CARGA AL ABRIR ================= */
 window.onload = async ()=>{
   const preview1 = document.getElementById("preview1");
-  if(!preview1) return;
 
   try{
     const state = await getTrapState(1);
-
     if(state.lastCapture === "OK"){
-      preview1.innerHTML = `
-        <b>Última captura</b>
-        <img src="${LAST_IMAGE_URL}?t=${Date.now()}">
-      `;
+      loadLastCapture(1, preview1);
     }
   }catch(e){
-    // si no hay conexión, queda la última visible
+    // queda última imagen visible
   }
 };
 </script>
 
 </body>
 </html>
+
