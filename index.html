@@ -41,6 +41,10 @@ header img.logo{height:110px}
   gap:12px;
   box-shadow:var(--shadow);
 }
+.card.disabled{
+  opacity:.45;
+  filter:grayscale(1);
+}
 
 .top-icons{
   position:absolute;
@@ -48,21 +52,56 @@ header img.logo{height:110px}
   right:14px;
   display:flex;
   gap:8px;
+  align-items:center;
 }
+
+/* ===== TOGGLE ORIGINAL ===== */
+.module-toggle{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#ffffff;
+  cursor:pointer;
+  box-shadow:0 0 0 2px rgba(0,0,0,.25);
+}
+.module-toggle.off{
+  background:rgba(255,255,255,.25);
+}
+
+/* ===== WIFI ORIGINAL ===== */
+.wifi{
+  position:relative;
+  width:18px;
+  height:14px;
+}
+.wifi span{
+  position:absolute;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  border:2px solid transparent;
+  border-top-color:#fff;
+  border-radius:50%;
+  opacity:.35;
+}
+.wifi span:nth-child(1){width:6px;height:6px;opacity:1}
+.wifi span:nth-child(2){width:12px;height:12px}
+.wifi span:nth-child(3){width:18px;height:18px}
+.wifi.level-3 span{opacity:1}
 
 h2{color:#fff;font-size:1rem}
 
-/* ===== PREVIEW CUADRADO OPTIMIZADO ===== */
+/* ===== PREVIEW MISMO TAMAÑO PERO MEJOR PROPORCIÓN ===== */
 .preview{
   background:rgba(0,0,0,.15);
   border-radius:14px;
-  width:100%;
-  aspect-ratio:1 / 1;        /* CUADRADO */
+  height:200px;                 /* un poco más alto */
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
   font-size:.75rem;
+  gap:6px;
   color:var(--muted);
   overflow:hidden;
 }
@@ -70,8 +109,7 @@ h2{color:#fff;font-size:1rem}
 .preview img{
   width:100%;
   height:100%;
-  object-fit:contain;       /* RESPETA PROPORCIÓN */
-  filter:brightness(1) contrast(1);
+  object-fit:contain;
   transition:.2s;
 }
 
@@ -89,6 +127,10 @@ h2{color:#fff;font-size:1rem}
   border-radius:12px;
   cursor:pointer;
   font-weight:700;
+}
+.controls button:disabled{
+  background:rgba(255,255,255,.4);
+  cursor:not-allowed;
 }
 
 .settings{
@@ -119,7 +161,7 @@ h2{color:#fff;font-size:1rem}
 const TOTAL_TRAPS = 3;
 const CAMERA_LIVE_DURATION = 20000;
 
-/* ===== IP DE TU ESP32 PRINCIPAL ===== */
+/* ===== IP ESP32 ===== */
 const MAIN_ESP_BASE = "http://10.153.210.142";
 const STREAM_URL = MAIN_ESP_BASE + "/stream";
 const LAST_IMAGE_URL = MAIN_ESP_BASE + "/last.jpg";
@@ -127,10 +169,28 @@ const LAST_IMAGE_URL = MAIN_ESP_BASE + "/last.jpg";
 /* ===== FIREBASE ===== */
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 
+/* ================= ESTADOS LOCALES ================= */
+function moduleKey(id){ return `module_enabled_${id}`; }
+function isEnabled(id){
+  const v = localStorage.getItem(moduleKey(id));
+  return v === null ? true : v === "true";
+}
+function setEnabled(id,val){
+  localStorage.setItem(moduleKey(id), val);
+}
+
 /* ================= FIREBASE ================= */
 async function getTrapState(id){
   const res = await fetch(`${FIREBASE_DB}/traps/${id}.json`);
   return await res.json();
+}
+
+function sendCommand(id, cmd){
+  fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cmd)
+  });
 }
 
 /* ================= FILTROS ================= */
@@ -155,11 +215,11 @@ async function openLiveCamera(id, preview){
 
   preview.innerHTML = `
     <b>📡 Cámara en vivo</b>
-    <img id="imgLive" src="${STREAM_URL}?t=${Date.now()}">
+    <img id="imgLive${id}" src="${STREAM_URL}?t=${Date.now()}">
     <span>${s}s</span>
   `;
 
-  const img = document.getElementById("imgLive");
+  const img = document.getElementById(`imgLive${id}`);
   applyFilters(img);
 
   const t = setInterval(()=>{
@@ -169,99 +229,121 @@ async function openLiveCamera(id, preview){
 
   setTimeout(()=>{
     clearInterval(t);
-    loadLastCapture(preview);
+    loadLastCapture(id, preview);
   }, CAMERA_LIVE_DURATION);
 }
 
 /* ================= ÚLTIMA CAPTURA PERSISTENTE ================= */
-function loadLastCapture(preview){
+function loadLastCapture(id, preview){
 
-  const saved = localStorage.getItem("lastImage");
+  const saved = localStorage.getItem(`lastImage_${id}`);
 
   preview.innerHTML = `
     <b>Última captura</b>
-    <img id="imgLast" src="${saved ? saved : LAST_IMAGE_URL}?t=${Date.now()}">
+    <img id="imgLast${id}" src="${saved ? saved : LAST_IMAGE_URL}?t=${Date.now()}">
   `;
 
-  const img = document.getElementById("imgLast");
+  const img = document.getElementById(`imgLast${id}`);
   applyFilters(img);
 
-  // guardar imagen para recargas futuras
   img.onload = ()=>{
-    localStorage.setItem("lastImage", LAST_IMAGE_URL);
+    localStorage.setItem(`lastImage_${id}`, LAST_IMAGE_URL);
   };
 }
 
-/* ================= GENERAR TARJETA ================= */
+/* ================= GENERAR TARJETAS (IGUAL QUE TU DISEÑO) ================= */
 const grid = document.getElementById("grid");
 
-const card = document.createElement("div");
-card.className="card";
+for(let i=1;i<=TOTAL_TRAPS;i++){
+  const card = document.createElement("div");
+  card.className="card";
 
-card.innerHTML = `
-  <h2>Trampa #1</h2>
+  card.innerHTML = `
+    <div class="top-icons">
+      <div class="wifi level-3" id="wifi${i}">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="module-toggle" id="toggle${i}"></div>
+    </div>
 
-  <div class="preview" id="preview1">
-    <b>Última captura</b>
-    <span>Cargando...</span>
-  </div>
+    <h2>Trampa #${i}</h2>
 
-  <div class="controls">
-    <button id="cam1">📡 Cámara en vivo</button>
-    <button id="set1">⚙️ Ajustes</button>
-  </div>
+    <div class="preview" id="preview${i}">
+      <b>Última captura</b>
+      <span>Sin imagen</span>
+    </div>
 
-  <div class="settings" id="settings1">
-    <label>Zoom <input type="range" min="1" max="2" step="0.1" value="1" id="zoom"></label>
-    <label>Brillo <input type="range" min="0.5" max="2" step="0.1" value="1" id="bright"></label>
-    <label>Contraste <input type="range" min="0.5" max="2" step="0.1" value="1" id="cont"></label>
-  </div>
+    <div class="controls">
+      <button id="cam${i}">📡 Cámara en vivo</button>
+      <button id="set${i}">⚙️ Ajustes</button>
+    </div>
 
-  <div class="history">Última imagen persistente</div>
-`;
+    <div class="settings" id="settings${i}">
+      <label>Zoom <input type="range" min="1" max="2" step="0.1" value="1"></label>
+      <label>Brillo <input type="range" min="0.5" max="2" step="0.1" value="1"></label>
+      <label>Contraste <input type="range" min="0.5" max="2" step="0.1" value="1"></label>
+    </div>
 
-grid.appendChild(card);
+    <div class="history">Estado sincronizado con Firebase</div>
+  `;
 
-const preview = document.getElementById("preview1");
-const camBtn = document.getElementById("cam1");
-const setBtn = document.getElementById("set1");
+  grid.appendChild(card);
 
-/* ================= EVENTOS ================= */
-camBtn.onclick = ()=> openLiveCamera(1, preview);
-setBtn.onclick = ()=> document.getElementById("settings1").classList.toggle("active");
+  const toggle = card.querySelector(`#toggle${i}`);
+  const camBtn = card.querySelector(`#cam${i}`);
+  const setBtn = card.querySelector(`#set${i}`);
+  const preview = card.querySelector(`#preview${i}`);
+  const settings = card.querySelector(`#settings${i}`);
 
-/* ===== CONTROLES DE FILTRO ===== */
-document.getElementById("zoom").oninput = e=>{
-  zoom = e.target.value;
-  const img = preview.querySelector("img");
-  if(img) applyFilters(img);
-};
+  /* ===== ESTADO TOGGLE PERSISTENTE ===== */
+  function applyState(){
+    const en = isEnabled(i);
+    toggle.classList.toggle("off", !en);
+    card.classList.toggle("disabled", !en);
+    camBtn.disabled = !en || i !== 1;
+    setBtn.disabled = !en;
+  }
 
-document.getElementById("bright").oninput = e=>{
-  brightness = e.target.value;
-  const img = preview.querySelector("img");
-  if(img) applyFilters(img);
-};
+  toggle.onclick = ()=>{
+    const newState = !isEnabled(i);
+    setEnabled(i, newState);
+    sendCommand(i, newState ? "ENABLE" : "DISABLE");
+    applyState();
+  };
 
-document.getElementById("cont").oninput = e=>{
-  contrast = e.target.value;
-  const img = preview.querySelector("img");
-  if(img) applyFilters(img);
-};
+  camBtn.onclick = ()=> openLiveCamera(i, preview);
+  setBtn.onclick = ()=> settings.classList.toggle("active");
 
-/* ================= CARGA AL ABRIR / RECARGAR ================= */
+  /* ===== FILTROS POR TARJETA ===== */
+  const sliders = settings.querySelectorAll("input");
+  sliders[0].oninput = e=>{ zoom = e.target.value; const img=preview.querySelector("img"); if(img) applyFilters(img); };
+  sliders[1].oninput = e=>{ brightness = e.target.value; const img=preview.querySelector("img"); if(img) applyFilters(img); };
+  sliders[2].oninput = e=>{ contrast = e.target.value; const img=preview.querySelector("img"); if(img) applyFilters(img); };
+
+  applyState();
+}
+
+/* ================= CARGA AL RECARGAR ================= */
 window.onload = async ()=>{
-  try{
-    const state = await getTrapState(1);
+  for(let i=1;i<=TOTAL_TRAPS;i++){
+    const preview = document.getElementById(`preview${i}`);
 
-    if(state.lastCapture === "OK"){
-      loadLastCapture(preview);
-    }else{
-      preview.innerHTML = `<b>Última captura</b><span>Sin imagen</span>`;
+    try{
+      const state = await getTrapState(i);
+
+      // wifi indicador según señal
+      const wifi = document.getElementById(`wifi${i}`);
+      if(state.wifi > -60) wifi.className="wifi level-3";
+      else if(state.wifi > -75) wifi.className="wifi level-2";
+      else wifi.className="wifi level-1";
+
+      if(state.lastCapture === "OK"){
+        loadLastCapture(i, preview);
+      }
+    }catch(e){
+      // sin firebase → mostrar última guardada
+      loadLastCapture(i, preview);
     }
-  }catch(e){
-    // aunque no haya conexión, mostrar última guardada
-    loadLastCapture(preview);
   }
 };
 </script>
