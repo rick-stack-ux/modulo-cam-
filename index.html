@@ -9,7 +9,6 @@
 :root{
   --monster:#39FF14;
   --monster-dark:#2ecc0f;
-  --text:#ffffff;
   --muted:rgba(255,255,255,.75);
   --shadow:0 12px 28px rgba(0,0,0,.35);
 }
@@ -51,10 +50,11 @@ header img.logo{height:110px}
   top:14px;
   right:14px;
   display:flex;
-  gap:8px;
+  gap:10px;
   align-items:center;
 }
 
+/* ===== TOGGLE ===== */
 .module-toggle{
   width:14px;
   height:14px;
@@ -67,10 +67,12 @@ header img.logo{height:110px}
   background:rgba(255,255,255,.25);
 }
 
+/* ===== WIFI ===== */
 .wifi{
   position:relative;
   width:18px;
   height:14px;
+  cursor:pointer;
 }
 .wifi span{
   position:absolute;
@@ -86,16 +88,19 @@ header img.logo{height:110px}
 .wifi span:nth-child(2){width:12px;height:12px}
 .wifi span:nth-child(3){width:18px;height:18px}
 .wifi.level-3 span{opacity:1}
+.wifi.level-2 span:nth-child(3){opacity:.35}
+.wifi.level-1 span:nth-child(2),
+.wifi.level-1 span:nth-child(3){opacity:.35}
 
 h2{color:#fff;font-size:1rem}
 
-/* ===== PREVIEW EXACTO 4:3 + VISOR ===== */
+/* ===== PREVIEW 4:3 + VISOR ===== */
 .preview{
   position:relative;
   background:#000;
   border-radius:14px;
   width:100%;
-  aspect-ratio:4 / 3;          /* PROPORCIÓN EXACTA QVGA */
+  aspect-ratio:4 / 3;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -103,21 +108,19 @@ h2{color:#fff;font-size:1rem}
   color:var(--muted);
   overflow:hidden;
 
-  /* marco tipo visor */
   border:3px solid rgba(255,255,255,.25);
   box-shadow:
     inset 0 0 0 2px rgba(0,0,0,.6),
     0 0 0 1px rgba(0,0,0,.4);
 }
 
-/* imagen real sin deformar */
 .preview img{
   width:100%;
   height:100%;
   object-fit:contain;
 }
 
-/* ===== OVERLAY DE HORA ===== */
+/* ===== OVERLAY HORA ===== */
 .overlay-time{
   position:absolute;
   bottom:6px;
@@ -128,7 +131,22 @@ h2{color:#fff;font-size:1rem}
   padding:3px 6px;
   border-radius:6px;
   font-family:monospace;
-  letter-spacing:.5px;
+}
+
+/* ===== WIFI INFO POPUP ===== */
+.wifi-info{
+  position:absolute;
+  top:36px;
+  right:0;
+  background:#000;
+  color:#39FF14;
+  font-size:.65rem;
+  padding:8px 10px;
+  border-radius:8px;
+  box-shadow:0 0 10px rgba(0,0,0,.6);
+  display:none;
+  z-index:10;
+  width:180px;
 }
 
 .controls{
@@ -185,10 +203,29 @@ const LAST_IMAGE_URL = MAIN_ESP_BASE + "/last.jpg";
 /* ===== FIREBASE ===== */
 const FIREBASE_DB = "https://t-sonda-2-default-rtdb.firebaseio.com";
 
-/* ================= FECHA FORMATEADA ================= */
+/* ================= UTIL ================= */
 function nowString(){
   const d = new Date();
   return d.toISOString().replace("T"," ").substring(0,19);
+}
+
+/* estimación kbps desde RSSI (aprox) */
+function rssiToKbps(rssi){
+  if(rssi > -60) return "30000 kb/s";
+  if(rssi > -70) return "15000 kb/s";
+  if(rssi > -80) return "5000 kb/s";
+  return "1000 kb/s";
+}
+
+/* ================= PERSISTENCIA TOGGLE ================= */
+function moduleKey(id){ return `module_enabled_${id}`; }
+
+function isEnabled(id){
+  const v = localStorage.getItem(moduleKey(id));
+  return v === null ? true : v === "true";
+}
+function setEnabled(id,val){
+  localStorage.setItem(moduleKey(id), val);
 }
 
 /* ================= FIREBASE ================= */
@@ -197,23 +234,27 @@ async function getTrapState(id){
   return await res.json();
 }
 
+function sendCommand(id, cmd){
+  fetch(`${FIREBASE_DB}/traps/${id}/command.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cmd)
+  });
+}
+
 /* ================= STREAM ================= */
 async function openLiveCamera(id, preview){
-
   const state = await getTrapState(id);
   if(state.online !== true){
     alert("Trampa dormida. Espere próximo evento.");
     return;
   }
 
-  let s = CAMERA_LIVE_DURATION / 1000;
-
   preview.innerHTML = `
     <img src="${STREAM_URL}?t=${Date.now()}">
     <div class="overlay-time">${nowString()}</div>
   `;
 
-  // actualizar hora cada segundo durante stream
   const clock = setInterval(()=>{
     const t = preview.querySelector(".overlay-time");
     if(t) t.textContent = nowString();
@@ -233,7 +274,7 @@ function loadLastCapture(id, preview){
   `;
 }
 
-/* ================= GENERAR TARJETAS (ESTRUCTURA ORIGINAL) ================= */
+/* ================= GENERAR TARJETAS ================= */
 const grid = document.getElementById("grid");
 
 for(let i=1;i<=TOTAL_TRAPS;i++){
@@ -245,6 +286,7 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
       <div class="wifi level-3" id="wifi${i}">
         <span></span><span></span><span></span>
       </div>
+      <div class="wifi-info" id="wifiInfo${i}"></div>
       <div class="module-toggle" id="toggle${i}"></div>
     </div>
 
@@ -270,23 +312,70 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
 
   grid.appendChild(card);
 
+  const toggle = card.querySelector(`#toggle${i}`);
   const camBtn = card.querySelector(`#cam${i}`);
   const preview = card.querySelector(`#preview${i}`);
+  const wifi = card.querySelector(`#wifi${i}`);
+  const wifiInfo = card.querySelector(`#wifiInfo${i}`);
+
+  /* ===== APLICAR ESTADO TOGGLE AL RECARGAR ===== */
+  function applyState(){
+    const en = isEnabled(i);
+    toggle.classList.toggle("off", !en);
+    card.classList.toggle("disabled", !en);
+    camBtn.disabled = !en || i !== 1;
+  }
+
+  toggle.onclick = ()=>{
+    const newState = !isEnabled(i);
+    setEnabled(i, newState);
+    sendCommand(i, newState ? "ENABLE" : "DISABLE");
+    applyState();
+  };
 
   camBtn.onclick = ()=> openLiveCamera(i, preview);
+
+  /* ===== CLICK WIFI → INFO ===== */
+  wifi.onclick = async ()=>{
+    const state = await getTrapState(i);
+
+    const rssi = state.wifi || -90;
+    const ssid = state.ssid || "Red desconocida";
+
+    wifiInfo.innerHTML = `
+      <b>SSID:</b> ${ssid}<br>
+      <b>RSSI:</b> ${rssi} dBm<br>
+      <b>Calidad:</b> ${rssiToKbps(rssi)}
+    `;
+
+    wifiInfo.style.display =
+      wifiInfo.style.display === "block" ? "none" : "block";
+  };
+
+  applyState();
 }
 
-/* ================= CARGA AL ABRIR ================= */
+/* ================= CARGA INICIAL ================= */
 window.onload = async ()=>{
-  const preview1 = document.getElementById("preview1");
+  for(let i=1;i<=TOTAL_TRAPS;i++){
+    const preview = document.getElementById(`preview${i}`);
+    const wifi = document.getElementById(`wifi${i}`);
 
-  try{
-    const state = await getTrapState(1);
-    if(state.lastCapture === "OK"){
-      loadLastCapture(1, preview1);
+    try{
+      const state = await getTrapState(i);
+
+      // nivel wifi
+      if(state.wifi > -60) wifi.className="wifi level-3";
+      else if(state.wifi > -75) wifi.className="wifi level-2";
+      else wifi.className="wifi level-1";
+
+      if(state.lastCapture === "OK"){
+        loadLastCapture(i, preview);
+      }
+
+    }catch(e){
+      // queda última visible
     }
-  }catch(e){
-    // queda última imagen visible
   }
 };
 </script>
