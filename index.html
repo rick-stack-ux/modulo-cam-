@@ -147,7 +147,7 @@ h2{color:#fff;font-size:1rem}
   box-shadow:0 0 10px rgba(0,0,0,.6);
   display:none;
   z-index:10;
-  width:190px;
+  width:200px;
 }
 
 .controls{
@@ -249,7 +249,7 @@ function sendCommand(id, cmd){
   });
 }
 
-/* ================= FILTROS (AJUSTES) ================= */
+/* ================= FILTROS ================= */
 function applyFilters(preview){
   const img = preview.querySelector("img");
   if(!img) return;
@@ -264,7 +264,6 @@ function applyFilters(preview){
 
 /* ================= STREAM ================= */
 async function openLiveCamera(id, preview){
-
   const state = await getTrapState(id);
   if(state.online !== true){
     alert("Trampa dormida. Espere próximo evento.");
@@ -289,12 +288,17 @@ async function openLiveCamera(id, preview){
   }, CAMERA_LIVE_DURATION);
 }
 
-/* ================= ÚLTIMA CAPTURA ================= */
+/* ================= ÚLTIMA CAPTURA (PERSISTENTE) ================= */
 function loadLastCapture(id, preview){
+
+  const url = LAST_IMAGE_URL + "?t=" + Date.now();
+  localStorage.setItem(`lastImage_${id}`, url);
+
   preview.innerHTML = `
-    <img src="${LAST_IMAGE_URL}?t=${Date.now()}">
+    <img src="${url}">
     <div class="overlay-time">${nowString()}</div>
   `;
+
   applyFilters(preview);
 }
 
@@ -352,7 +356,6 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   const settings = card.querySelector(`#settings${i}`);
   const sliders = settings.querySelectorAll("input");
 
-  /* ===== ESTADO TOGGLE ===== */
   function applyState(){
     const en = isEnabled(i);
     toggle.classList.toggle("off", !en);
@@ -370,24 +373,12 @@ for(let i=1;i<=TOTAL_TRAPS;i++){
   camBtn.onclick = ()=> openLiveCamera(i, preview);
   setBtn.onclick = ()=> settings.classList.toggle("active");
 
-  /* ===== SLIDERS ACTIVOS ===== */
-  sliders[0].oninput = e=>{
-    preview.dataset.zoom = e.target.value;
-    applyFilters(preview);
-  };
-  sliders[1].oninput = e=>{
-    preview.dataset.bright = e.target.value;
-    applyFilters(preview);
-  };
-  sliders[2].oninput = e=>{
-    preview.dataset.contrast = e.target.value;
-    applyFilters(preview);
-  };
+  sliders[0].oninput = e=>{ preview.dataset.zoom = e.target.value; applyFilters(preview); };
+  sliders[1].oninput = e=>{ preview.dataset.bright = e.target.value; applyFilters(preview); };
+  sliders[2].oninput = e=>{ preview.dataset.contrast = e.target.value; applyFilters(preview); };
 
-  /* ===== WIFI CLICK INFO ===== */
   wifi.onclick = async ()=>{
     const state = await getTrapState(i);
-
     const rssi = state.wifi || -90;
     const ssid = state.ssid || "Red desconocida";
 
@@ -410,6 +401,16 @@ window.onload = async ()=>{
     const preview = document.getElementById(`preview${i}`);
     const wifi = document.getElementById(`wifi${i}`);
 
+    /* mostrar siempre última guardada */
+    const saved = localStorage.getItem(`lastImage_${i}`);
+    if(saved){
+      preview.innerHTML = `
+        <img src="${saved}">
+        <div class="overlay-time">${nowString()}</div>
+      `;
+      applyFilters(preview);
+    }
+
     try{
       const state = await getTrapState(i);
 
@@ -422,7 +423,7 @@ window.onload = async ()=>{
       }
 
     }catch(e){
-      // queda última imagen visible
+      // queda imagen local
     }
   }
 };
@@ -430,3 +431,4 @@ window.onload = async ()=>{
 
 </body>
 </html>
+
